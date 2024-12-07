@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Discover the best CPUs for gaming in the world, featuring high-performance processors for the ultimate gaming experience.">
+    <meta name="author" content="Your Name or Company">
+    <meta name="keywords" content="best gaming CPUs, gaming processors, high-performance CPUs, Intel i9, AMD Ryzen 9, gaming builds">
+    <title>The Best Gaming CPUs in the World</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+    <style>
+        /* Global Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body and General Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: #111;
+            color: #fff;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #3498db;  /* Blue color for header */
+        }
+
+        header nav ul {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        header nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        header nav ul li a {
+            color: #fff;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+
+        header nav ul li a:hover {
+            color: #3498db;
+        }
+
+        /* Hero Section Styles */
+        .hero {
+            background-color: #2c3e50;
+            color: #fff;
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .hero h2 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            font-weight: bold;  /* Bold text */
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #ecf0f1;
+        }
+
+        /* Best CPUs Section */
+        .best-cpus {
+            background-color: #fff;
+            padding: 40px 0;
+        }
+
+        .best-cpus h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .cpu-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .cpu-item {
+            background-color: #ecf0f1;
+            margin: 15px;
+            padding: 20px;
+            width: 30%;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .cpu-item h3 {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #3498db;  /* Bold and blue color for CPU names */
+            margin-bottom: 10px;
+        }
+
+        .cpu-item p {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .cpu-item ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .cpu-item ul li {
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .cpu-item ul li strong {
+            font-weight: bold;
+            color: #3498db;  /* Highlight the key specs in blue */
+        }
+
+        /* Why Choose Section */
+        .why-choose {
+            padding: 40px 0;
+            background-color: #ecf0f1;
+        }
+
+        .why-choose h2 {
+            text-align: center;
+            font-size: 2rem;
+            color: #2c3e50;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .why-choose p {
+            font-size: 1.2rem;
+            color: #555;
+            line-height: 1.8;
+            text-align: center;
+        }
+
+        /* Reviews Section */
+        .reviews {
+            padding: 40px 0;
+            background-color: #fff;
+        }
+
+        .reviews h2 {
+            text-align: center;
+            font-size: 2rem;
+            color: #2c3e50;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .review-item {
+            background-color: #ecf0f1;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .review-item h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .review-item p {
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: #111;
+            color: #fff;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        footer nav ul {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        footer nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        footer nav ul li a {
+            color: #fff;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        footer nav ul li a:hover {
+            color: #3498db;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .cpu-item {
+                width: 48%;
+            }
+
+            .cpu-list {
+                justify-content: space-around;
+            }
+
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .why-choose p,
+            .reviews p {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .cpu-item {
+                width: 100%;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .hero h2 {
+                font-size: 1.6rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <h1>The Best Gaming CPUs</h1>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Best CPUs</a></li>
+                    <li><a href="#">Reviews</a></li>
+                    <li><a href="#">News</a></li>
+                    <li><a href="#">About Us</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h2>Discover the Best CPUs for Gaming</h2>
+            <p>Unleash the power of the best gaming processors with high frame rates, low latency, and unparalleled gaming performance.</p>
+        </div>
+    </section>
+
+    <!-- Top Gaming CPUs Section -->
+    <section class="best-cpus">
+        <div class="container">
+            <h2>Top 5 Gaming CPUs of 2024</h2>
+            <div class="cpu-list">
+                <!-- CPU Item -->
+                <article class="cpu-item">
+                    <h3>Intel Core i9-13900K</h3>
+                    <p>The Intel Core i9-13900K is a powerhouse CPU offering exceptional multi-core performance, making it ideal for demanding games and content creation.</p>
+                    <ul>
+                        <li><strong>Cores:</strong> 24</li>
+                        <li><strong>Threads:</strong> 32</li>
+                        <li><strong>Base Clock:</strong> 3.0 GHz</li>
+                        <li><strong>Max Turbo:</strong> 5.8 GHz</li>
+                    </ul>
+                </article>
+
+                <!-- CPU Item -->
+                <article class="cpu-item">
+                    <h3>AMD Ryzen 9 7950X</h3>
+                    <p>The AMD Ryzen 9 7950X is perfect for gamers and creators who need raw performance. With 16 cores, it tackles multi-threaded applications with ease.</p>
+                    <ul>
+                        <li><strong>Cores:</strong> 16</li>
+                        <li><strong>Threads:</strong> 32</li>
+                        <li><strong>Base Clock:</strong> 4.5 GHz</li>
+                        <li><strong>Max Boost:</strong> 5.7 GHz</li>
+                    </ul>
+                </article>
+
+                <!-- CPU Item -->
+                <article class="cpu-item">
+                    <h3>Intel Core i7-13700K</h3>
+                    <p>Offering great performance for both gaming and productivity, the Intel Core i7-13700K is a balanced option for gamers who need both power and value.</p>
+                    <ul>
+                        <li><strong>Cores:</strong> 16</li>
+                        <li><strong>Threads:</strong> 24</li>
+                        <li><strong>Base Clock:</strong> 3.4 GHz</li>
+                        <li><strong>Max Turbo:</strong> 5.4 GHz</li>
+                    </ul>
+                </article>
+
+                <!-- CPU Item -->
+                <article class="cpu-item">
+                    <h3>AMD Ryzen 7 7800X3D</h3>
+                    <p>The Ryzen 7 7800X3D features AMD's revolutionary 3D V-Cache technology, offering superior gaming performance by improving cache efficiency.</p>
+                    <ul>
+                        <li><strong>Cores:</strong> 8</li>
+                        <li><strong>Threads:</strong> 16</li>
+                        <li><strong>Base Clock:</strong> 4.2 GHz</li>
+                        <li><strong>Max Boost:</strong> 5.0 GHz</li>
+                    </ul>
+                </article>
+
+                <!-- CPU Item -->
+                <article class="cpu-item">
+                    <h3>Intel Core i5-13600K</h3>
+                    <p>The i5-13600K is an affordable option that still provides great performance for 1080p and 1440p gaming, without sacrificing speed or efficiency.</p>
+                    <ul>
+                        <li><strong>Cores:</strong> 14</li>
+                        <li><strong>Threads:</strong> 20</li>
+                        <li><strong>Base Clock:</strong> 3.5 GHz</li>
+                        <li><strong>Max Turbo:</strong> 5.1 GHz</li>
+                    </ul>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose These CPUs Section -->
+    <section class="why-choose">
+        <div class="container">
+            <h2>Why These CPUs?</h2>
+            <p>These processors were selected based on their outstanding performance in gaming benchmarks, multitasking ability, and overall efficiency. Whether you're an enthusiast or a casual gamer, these CPUs will provide the reliability and power you need for next-gen gaming experiences.</p>
+        </div>
+    </section>
+
+    <!-- Featured Reviews Section -->
+    <section class="reviews">
+        <div class="container">
+            <h2>Featured Reviews</h2>
+            <div class="review-item">
+                <h3>Intel Core i9-13900K Review</h3>
+                <p>"The i9-13900K is a monster in performance, delivering top-tier gaming experiences at 4K resolutions while multitasking with ease."</p>
+            </div>
+            <div class="review-item">
+                <h3>AMD Ryzen 9 7950X Review</h3>
+                <p>"The Ryzen 9 7950X offers fantastic performance across both gaming and productivity workloads. It's a dream come true for content creators and gamers alike."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 The Best Gaming CPUs.</p>
+            <nav>
+                <ul>
+                    <li><a href="file:///C:/Users/Giga%20Store/OneDrive/Documents/privacy.html">Privacy Policy</a></li>
+                    <li><a href="file:///C:/Users/Giga%20Store/OneDrive/Documents/Terms.html">Terms of Service</a></li>
+                    <li><a href="file:///C:/Users/Giga%20Store/OneDrive/Documents/Contact%20Us.html">Contact Us</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+
+</body>
+
+</html>
