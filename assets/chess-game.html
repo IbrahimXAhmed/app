@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classic Chess</title>
+  <style>
+    :root {
+      --light: #eeeed2;
+      --dark: #769656;
+      --panel: #111827;
+      --panel-soft: #1f2937;
+      --text: #f8fafc;
+      --accent: #22c55e;
+      --warn: #eab308;
+      --danger: #ef4444;
+      --selected: #60a5fa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0%, #020617 55%, #020617 100%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .layout {
+      display: grid;
+      gap: 20px;
+      width: min(1080px, 100%);
+      grid-template-columns: minmax(320px, 640px) minmax(280px, 1fr);
+      align-items: start;
+    }
+
+    .board-wrap {
+      background: #0b1220;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .board {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      border: 8px solid #1b2d14;
+      border-radius: 8px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .square {
+      position: relative;
+      display: grid;
+      place-items: center;
+      font-size: clamp(30px, 4.8vw, 52px);
+      cursor: pointer;
+      transition: transform 120ms ease;
+    }
+
+    .square.light { background: var(--light); }
+    .square.dark { background: var(--dark); }
+
+    .square.selected {
+      box-shadow: inset 0 0 0 4px var(--selected);
+    }
+
+    .square.last-move::before,
+    .square.legal::before,
+    .square.capture::before,
+    .square.in-check::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .square.legal::before {
+      background: radial-gradient(circle, rgba(2, 6, 23, 0.35) 22%, transparent 24%);
+    }
+
+    .square.capture::before {
+      box-shadow: inset 0 0 0 6px rgba(2, 6, 23, 0.35);
+    }
+
+    .square.last-move::before {
+      background: rgba(251, 191, 36, 0.35);
+    }
+
+    .square.in-check::before {
+      background: rgba(239, 68, 68, 0.35);
+    }
+
+    .coord {
+      position: absolute;
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0.75;
+      pointer-events: none;
+    }
+
+    .coord.file { right: 4px; bottom: 2px; }
+    .coord.rank { left: 4px; top: 2px; }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid #374151;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.3rem;
+    }
+
+    .status {
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--panel-soft);
+      line-height: 1.4;
+      min-height: 58px;
+      border: 1px solid #334155;
+    }
+
+    .status.ok { border-color: #14532d; color: #bbf7d0; }
+    .status.warn { border-color: #78350f; color: #fef3c7; }
+    .status.danger { border-color: #7f1d1d; color: #fecaca; }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #e2e8f0;
+      background: #334155;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover { filter: brightness(1.08); }
+
+    .moves {
+      margin-top: 12px;
+      background: var(--panel-soft);
+      border: 1px solid #334155;
+      border-radius: 10px;
+      max-height: 340px;
+      overflow: auto;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .captures {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .captures div {
+      background: var(--panel-soft);
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 52px;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <section class="board-wrap">
+      <div id="board" class="board" aria-label="Chessboard"></div>
+    </section>
+
+    <aside class="panel">
+      <h1>Classic Chess</h1>
+      <p id="status" class="status"></p>
+
+      <div class="controls">
+        <button id="undoBtn" type="button">Undo Move</button>
+        <button id="flipBtn" type="button">Flip Board</button>
+        <button id="resetBtn" type="button">New Game</button>
+      </div>
+
+      <div class="captures">
+        <div><strong>White captured:</strong><br><span id="whiteCaps">—</span></div>
+        <div><strong>Black captured:</strong><br><span id="blackCaps">—</span></div>
+      </div>
+
+      <div id="moves" class="moves" aria-live="polite"></div>
+    </aside>
+  </main>
+
+  <script type="module">
+    import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.0.0-beta.8/+esm'
+
+    const boardEl = document.getElementById('board')
+    const statusEl = document.getElementById('status')
+    const movesEl = document.getElementById('moves')
+    const whiteCapsEl = document.getElementById('whiteCaps')
+    const blackCapsEl = document.getElementById('blackCaps')
+    const undoBtn = document.getElementById('undoBtn')
+    const resetBtn = document.getElementById('resetBtn')
+    const flipBtn = document.getElementById('flipBtn')
+
+    const chess = new Chess()
+    const PIECES = {
+      p: '♟', r: '♜', n: '♞', b: '♝', q: '♛', k: '♚',
+      P: '♙', R: '♖', N: '♘', B: '♗', Q: '♕', K: '♔'
+    }
+
+    let selected = null
+    let orientation = 'white'
+
+    function squareList () {
+      const files = orientation === 'white' ? 'abcdefgh' : 'hgfedcba'
+      const ranks = orientation === 'white' ? [8, 7, 6, 5, 4, 3, 2, 1] : [1, 2, 3, 4, 5, 6, 7, 8]
+      return ranks.flatMap(rank => [...files].map(file => `${file}${rank}`))
+    }
+
+    function legalTargets (from) {
+      return chess.moves({ square: from, verbose: true }).map(m => ({ to: m.to, flags: m.flags }))
+    }
+
+    function onSquareClick (square) {
+      const piece = chess.get(square)
+      const turn = chess.turn()
+      const isOwnPiece = piece && piece.color === turn
+
+      if (selected) {
+        if (selected === square) {
+          selected = null
+          render()
+          return
+        }
+
+        const move = chess.move({ from: selected, to: square, promotion: 'q' })
+        if (move) {
+          selected = null
+          render()
+          return
+        }
+
+        if (isOwnPiece) {
+          selected = square
+          render()
+          return
+        }
+      }
+
+      selected = isOwnPiece ? square : null
+      render()
+    }
+
+    function capturedPieces () {
+      const history = chess.history({ verbose: true })
+      const whiteCaptured = []
+      const blackCaptured = []
+      history.forEach(m => {
+        if (m.captured) {
+          if (m.color === 'w') {
+            whiteCaptured.push(PIECES[m.captured])
+          } else {
+            blackCaptured.push(PIECES[m.captured.toUpperCase()])
+          }
+        }
+      })
+      whiteCapsEl.textContent = whiteCaptured.join(' ') || '—'
+      blackCapsEl.textContent = blackCaptured.join(' ') || '—'
+    }
+
+    function statusMessage () {
+      const turnLabel = chess.turn() === 'w' ? 'White' : 'Black'
+      statusEl.className = 'status'
+
+      if (chess.isCheckmate()) {
+        statusEl.classList.add('danger')
+        return `Checkmate! ${turnLabel} is checkmated.`
+      }
+      if (chess.isDraw()) {
+        statusEl.classList.add('warn')
+        if (chess.isStalemate()) return 'Draw by stalemate.'
+        if (chess.isThreefoldRepetition()) return 'Draw by threefold repetition.'
+        if (chess.isInsufficientMaterial()) return 'Draw by insufficient material.'
+        return 'Draw.'
+      }
+      if (chess.isCheck()) {
+        statusEl.classList.add('warn')
+        return `${turnLabel} to move — in check.`
+      }
+      statusEl.classList.add('ok')
+      return `${turnLabel} to move.`
+    }
+
+    function renderMoveList () {
+      const history = chess.history()
+      const rows = []
+      for (let i = 0; i < history.length; i += 2) {
+        const moveNo = `${Math.floor(i / 2) + 1}.`
+        rows.push(`${moveNo.padEnd(4, ' ')} ${history[i] || ''} ${(history[i + 1] || '').trim()}`.trimEnd())
+      }
+      movesEl.textContent = rows.join('\n') || 'No moves yet.'
+    }
+
+    function render () {
+      boardEl.innerHTML = ''
+      const boardState = chess.board()
+      const targets = selected ? legalTargets(selected) : []
+      const targetMap = new Map(targets.map(t => [t.to, t.flags]))
+      const lastMove = chess.history({ verbose: true }).at(-1)
+      const kingInCheck = chess.isCheck() ? chess.board().flat().find(p => p && p.type === 'k' && p.color === chess.turn()) : null
+
+      squareList().forEach((sq, idx) => {
+        const file = sq.charCodeAt(0) - 97
+        const rank = Number(sq[1])
+        const pieceObj = boardState[8 - rank][file]
+        const piece = pieceObj ? (pieceObj.color === 'w' ? pieceObj.type.toUpperCase() : pieceObj.type) : null
+        const isLight = (idx + Math.floor(idx / 8)) % 2 === 0
+
+        const cell = document.createElement('button')
+        cell.type = 'button'
+        cell.className = `square ${isLight ? 'light' : 'dark'}`
+        cell.dataset.square = sq
+        cell.textContent = piece ? PIECES[piece] : ''
+        cell.setAttribute('aria-label', `${sq}${piece ? ` ${piece}` : ''}`)
+
+        if (selected === sq) cell.classList.add('selected')
+        if (lastMove && (lastMove.from === sq || lastMove.to === sq)) cell.classList.add('last-move')
+        if (targetMap.has(sq)) {
+          cell.classList.add(targetMap.get(sq).includes('c') ? 'capture' : 'legal')
+        }
+        if (kingInCheck && pieceObj && pieceObj.type === 'k' && pieceObj.color === chess.turn()) {
+          cell.classList.add('in-check')
+        }
+
+        if (rank === (orientation === 'white' ? 1 : 8)) {
+          const fileHint = document.createElement('span')
+          fileHint.className = 'coord file'
+          fileHint.textContent = sq[0]
+          cell.appendChild(fileHint)
+        }
+        if (sq[0] === (orientation === 'white' ? 'a' : 'h')) {
+          const rankHint = document.createElement('span')
+          rankHint.className = 'coord rank'
+          rankHint.textContent = sq[1]
+          cell.appendChild(rankHint)
+        }
+
+        cell.addEventListener('click', () => onSquareClick(sq))
+        boardEl.appendChild(cell)
+      })
+
+      statusEl.textContent = statusMessage()
+      renderMoveList()
+      capturedPieces()
+    }
+
+    undoBtn.addEventListener('click', () => {
+      chess.undo()
+      selected = null
+      render()
+    })
+
+    resetBtn.addEventListener('click', () => {
+      chess.reset()
+      selected = null
+      render()
+    })
+
+    flipBtn.addEventListener('click', () => {
+      orientation = orientation === 'white' ? 'black' : 'white'
+      render()
+    })
+
+    render()
+  </script>
+</body>
+</html>
