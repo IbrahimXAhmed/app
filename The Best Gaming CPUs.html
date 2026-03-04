@@ -1,422 +1,718 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Discover the best CPUs for gaming in the world, featuring high-performance processors for the ultimate gaming experience.">
-    <meta name="author" content="Your Name or Company">
-    <meta name="keywords" content="best gaming CPUs, gaming processors, high-performance CPUs, Intel i9, AMD Ryzen 9, gaming builds">
-    <title>The Best Gaming CPUs in the World</title>
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-
-    <!-- Favicon -->
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chess.com-style Chess Game</title>
     <style>
-        /* Global Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      :root {
+        color-scheme: dark;
+        --bg: #2f2c29;
+        --shell: #262522;
+        --panel: #1f1f1d;
+        --text: #f3f3f2;
+        --muted: #b7b6b3;
+        --light: #eeeed2;
+        --dark: #769656;
+        --hint: rgb(44 87 37 / 45%);
+        --last-move: rgb(246 246 105 / 45%);
+        --selected: rgb(255 196 0 / 65%);
+        --check: rgb(224 70 70 / 75%);
+        --active: #81b64c;
+      }
 
-        /* Body and General Styles */
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            line-height: 1.6;
-        }
+      * {
+        box-sizing: border-box;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      }
 
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at top, #3a3733, var(--bg) 58%);
+        color: var(--text);
+        padding: 22px;
+      }
 
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+      .layout {
+        width: min(1240px, 100%);
+        display: grid;
+        grid-template-columns: minmax(360px, 72vh) minmax(300px, 380px);
+        gap: 22px;
+        align-items: start;
+      }
 
-        /* Header Styles */
-        header {
-            background-color: #111;
-            color: #fff;
-            padding: 20px 0;
-            text-align: center;
-        }
+      .board-shell,
+      .side-shell {
+        background: var(--shell);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 12px 38px rgb(0 0 0 / 38%);
+      }
 
-        header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #3498db;  /* Blue color for header */
-        }
+      .clock {
+        background: linear-gradient(90deg, #353432, #2d2c2a);
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-weight: 700;
+        font-size: 1.9vh;
+        min-height: 44px;
+      }
 
-        header nav ul {
-            list-style: none;
-            margin-top: 10px;
-        }
+      .clock.active {
+        box-shadow: inset 0 0 0 2px var(--active);
+      }
 
-        header nav ul li {
-            display: inline;
-            margin: 0 15px;
-        }
+      .board {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        border-radius: 8px;
+        overflow: hidden;
+      }
 
-        header nav ul li a {
-            color: #fff;
-            font-weight: 500;
-            font-size: 1.1rem;
-            transition: color 0.3s;
-        }
+      .square {
+        border: none;
+        padding: 0;
+        margin: 0;
+        position: relative;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+      }
 
-        header nav ul li a:hover {
-            color: #3498db;
-        }
+      .square.light { background: var(--light); }
+      .square.dark { background: var(--dark); }
 
-        /* Hero Section Styles */
-        .hero {
-            background-color: #2c3e50;
-            color: #fff;
-            padding: 60px 0;
-            text-align: center;
-        }
+      .square.selected::before,
+      .square.last-move::before,
+      .square.check::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+      }
+      .square.selected::before { background: var(--selected); }
+      .square.last-move::before { background: var(--last-move); }
+      .square.check::before { background: radial-gradient(circle at center, var(--check) 8%, transparent 72%); }
 
-        .hero h2 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-            font-weight: bold;  /* Bold text */
-        }
+      .square.hint::after {
+        content: '';
+        width: 28%;
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+        background: var(--hint);
+        position: absolute;
+      }
 
-        .hero p {
-            font-size: 1.2rem;
-            color: #ecf0f1;
-        }
+      .square.capture::after {
+        content: '';
+        width: 82%;
+        height: 82%;
+        border-radius: 50%;
+        border: 0.34vw solid var(--hint);
+        max-width: 84px;
+        max-height: 84px;
+        min-width: 22px;
+        min-height: 22px;
+        position: absolute;
+      }
 
-        /* Best CPUs Section */
-        .best-cpus {
-            background-color: #fff;
-            padding: 40px 0;
-        }
+      .piece {
+        width: 88%;
+        height: 88%;
+        object-fit: contain;
+        position: relative;
+        z-index: 2;
+        pointer-events: none;
+        user-select: none;
+      }
 
-        .best-cpus h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 30px;
-            color: #2c3e50;
-            font-weight: bold;
-        }
+      .coord {
+        position: absolute;
+        font-size: clamp(10px, 1.2vh, 12px);
+        line-height: 1;
+        font-weight: 700;
+        opacity: 0.78;
+        z-index: 3;
+        pointer-events: none;
+      }
 
-        .cpu-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-        }
+      .coord.file { right: 6%; bottom: 6%; }
+      .coord.rank { left: 6%; top: 6%; }
+      .coord.on-light { color: #769656; }
+      .coord.on-dark { color: #eeeed2; }
 
-        .cpu-item {
-            background-color: #ecf0f1;
-            margin: 15px;
-            padding: 20px;
-            width: 30%;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
+      .side-shell { display: grid; gap: 12px; }
 
-        .cpu-item h3 {
-            font-size: 1.6rem;
-            font-weight: bold;
-            color: #3498db;  /* Bold and blue color for CPU names */
-            margin-bottom: 10px;
-        }
+      .status {
+        background: linear-gradient(90deg, #353432, #2e2d2b);
+        border-radius: 10px;
+        padding: 12px;
+        font-weight: 700;
+        min-height: 46px;
+        display: grid;
+        align-items: center;
+      }
 
-        .cpu-item p {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            color: #555;
-        }
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
 
-        .cpu-item ul {
-            list-style: none;
-            padding-left: 0;
-        }
+      button, select, input {
+        border: 1px solid #4c4b48;
+        border-radius: 9px;
+        background: #32312f;
+        color: var(--text);
+        padding: 10px 11px;
+        font-weight: 700;
+      }
 
-        .cpu-item ul li {
-            font-size: 1rem;
-            color: #333;
-        }
+      button { cursor: pointer; }
+      button:hover { background: #3a3936; }
+      label { display: block; margin-bottom: 6px; color: var(--muted); }
+      .section-title { color: var(--muted); }
 
-        .cpu-item ul li strong {
-            font-weight: bold;
-            color: #3498db;  /* Highlight the key specs in blue */
-        }
+      .moves {
+        min-height: 190px;
+        max-height: 320px;
+        overflow: auto;
+        background: #2a2927;
+        border-radius: 9px;
+        padding: 10px;
+        line-height: 1.6;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        white-space: pre-wrap;
+      }
 
-        /* Why Choose Section */
-        .why-choose {
-            padding: 40px 0;
-            background-color: #ecf0f1;
-        }
+      .stack { display: grid; gap: 8px; }
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .note { color: var(--muted); line-height: 1.4; margin: 0; }
 
-        .why-choose h2 {
-            text-align: center;
-            font-size: 2rem;
-            color: #2c3e50;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-
-        .why-choose p {
-            font-size: 1.2rem;
-            color: #555;
-            line-height: 1.8;
-            text-align: center;
-        }
-
-        /* Reviews Section */
-        .reviews {
-            padding: 40px 0;
-            background-color: #fff;
-        }
-
-        .reviews h2 {
-            text-align: center;
-            font-size: 2rem;
-            color: #2c3e50;
-            font-weight: bold;
-            margin-bottom: 30px;
-        }
-
-        .review-item {
-            background-color: #ecf0f1;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .review-item h3 {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #3498db;
-            margin-bottom: 10px;
-        }
-
-        .review-item p {
-            font-size: 1.1rem;
-            color: #555;
-        }
-
-        /* Footer Styles */
-        footer {
-            background-color: #111;
-            color: #fff;
-            padding: 20px 0;
-            text-align: center;
-        }
-
-        footer p {
-            font-size: 1rem;
-            margin-bottom: 10px;
-        }
-
-        footer nav ul {
-            list-style: none;
-            margin-top: 10px;
-        }
-
-        footer nav ul li {
-            display: inline;
-            margin: 0 15px;
-        }
-
-        footer nav ul li a {
-            color: #fff;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        footer nav ul li a:hover {
-            color: #3498db;
-        }
-
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            .cpu-item {
-                width: 48%;
-            }
-
-            .cpu-list {
-                justify-content: space-around;
-            }
-
-            .hero h2 {
-                font-size: 1.8rem;
-            }
-
-            .hero p {
-                font-size: 1.1rem;
-            }
-
-            .why-choose p,
-            .reviews p {
-                font-size: 1rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .cpu-item {
-                width: 100%;
-            }
-
-            header h1 {
-                font-size: 2rem;
-            }
-
-            .hero h2 {
-                font-size: 1.6rem;
-            }
-
-            .hero p {
-                font-size: 1rem;
-            }
-        }
+      @media (max-width: 960px) {
+        .layout { grid-template-columns: 1fr; }
+      }
     </style>
-</head>
+  </head>
+  <body>
+    <main class="layout">
+      <section class="board-shell">
+        <div id="black-clock" class="clock"><span>Black</span><span>10:00</span></div>
+        <div id="board" class="board" aria-label="Chess board"></div>
+        <div id="white-clock" class="clock active"><span>White</span><span>10:00</span></div>
+      </section>
 
-<body>
+      <aside class="side-shell">
+        <div id="status" class="status">White to move</div>
 
-    <!-- Header -->
-    <header>
-        <div class="container">
-            <h1>The Best Gaming CPUs</h1>
-            <nav>
-                <ul>
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#">Best CPUs</a></li>
-                    <li><a href="#">Reviews</a></li>
-                    <li><a href="#">News</a></li>
-                    <li><a href="#">About Us</a></li>
-                </ul>
-            </nav>
+        <div class="controls">
+          <button id="new-game">New Game</button>
+          <button id="undo">Undo</button>
+          <button id="flip">Flip Board</button>
+          <button id="copy-pgn">Copy PGN</button>
         </div>
-    </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <h2>Discover the Best CPUs for Gaming</h2>
-            <p>Unleash the power of the best gaming processors with high frame rates, low latency, and unparalleled gaming performance.</p>
+        <div>
+          <label for="time">Time control (minutes)</label>
+          <select id="time">
+            <option value="1">1+0 (Bullet)</option>
+            <option value="3">3+0 (Blitz)</option>
+            <option value="5">5+0</option>
+            <option value="10" selected>10+0 (Rapid)</option>
+            <option value="15">15+0</option>
+          </select>
         </div>
-    </section>
 
-    <!-- Top Gaming CPUs Section -->
-    <section class="best-cpus">
-        <div class="container">
-            <h2>Top 5 Gaming CPUs of 2024</h2>
-            <div class="cpu-list">
-                <!-- CPU Item -->
-                <article class="cpu-item">
-                    <h3>Intel Core i9-13900K</h3>
-                    <p>The Intel Core i9-13900K is a powerhouse CPU offering exceptional multi-core performance, making it ideal for demanding games and content creation.</p>
-                    <ul>
-                        <li><strong>Cores:</strong> 24</li>
-                        <li><strong>Threads:</strong> 32</li>
-                        <li><strong>Base Clock:</strong> 3.0 GHz</li>
-                        <li><strong>Max Turbo:</strong> 5.8 GHz</li>
-                    </ul>
-                </article>
-
-                <!-- CPU Item -->
-                <article class="cpu-item">
-                    <h3>AMD Ryzen 9 7950X</h3>
-                    <p>The AMD Ryzen 9 7950X is perfect for gamers and creators who need raw performance. With 16 cores, it tackles multi-threaded applications with ease.</p>
-                    <ul>
-                        <li><strong>Cores:</strong> 16</li>
-                        <li><strong>Threads:</strong> 32</li>
-                        <li><strong>Base Clock:</strong> 4.5 GHz</li>
-                        <li><strong>Max Boost:</strong> 5.7 GHz</li>
-                    </ul>
-                </article>
-
-                <!-- CPU Item -->
-                <article class="cpu-item">
-                    <h3>Intel Core i7-13700K</h3>
-                    <p>Offering great performance for both gaming and productivity, the Intel Core i7-13700K is a balanced option for gamers who need both power and value.</p>
-                    <ul>
-                        <li><strong>Cores:</strong> 16</li>
-                        <li><strong>Threads:</strong> 24</li>
-                        <li><strong>Base Clock:</strong> 3.4 GHz</li>
-                        <li><strong>Max Turbo:</strong> 5.4 GHz</li>
-                    </ul>
-                </article>
-
-                <!-- CPU Item -->
-                <article class="cpu-item">
-                    <h3>AMD Ryzen 7 7800X3D</h3>
-                    <p>The Ryzen 7 7800X3D features AMD's revolutionary 3D V-Cache technology, offering superior gaming performance by improving cache efficiency.</p>
-                    <ul>
-                        <li><strong>Cores:</strong> 8</li>
-                        <li><strong>Threads:</strong> 16</li>
-                        <li><strong>Base Clock:</strong> 4.2 GHz</li>
-                        <li><strong>Max Boost:</strong> 5.0 GHz</li>
-                    </ul>
-                </article>
-
-                <!-- CPU Item -->
-                <article class="cpu-item">
-                    <h3>Intel Core i5-13600K</h3>
-                    <p>The i5-13600K is an affordable option that still provides great performance for 1080p and 1440p gaming, without sacrificing speed or efficiency.</p>
-                    <ul>
-                        <li><strong>Cores:</strong> 14</li>
-                        <li><strong>Threads:</strong> 20</li>
-                        <li><strong>Base Clock:</strong> 3.5 GHz</li>
-                        <li><strong>Max Turbo:</strong> 5.1 GHz</li>
-                    </ul>
-                </article>
+        <div class="stack">
+          <div class="section-title">AI rival</div>
+          <div class="grid-2">
+            <div>
+              <label for="ai-enabled">Mode</label>
+              <select id="ai-enabled">
+                <option value="off">2 Players</option>
+                <option value="on" selected>Vs AI</option>
+              </select>
             </div>
-        </div>
-    </section>
-
-    <!-- Why Choose These CPUs Section -->
-    <section class="why-choose">
-        <div class="container">
-            <h2>Why These CPUs?</h2>
-            <p>These processors were selected based on their outstanding performance in gaming benchmarks, multitasking ability, and overall efficiency. Whether you're an enthusiast or a casual gamer, these CPUs will provide the reliability and power you need for next-gen gaming experiences.</p>
-        </div>
-    </section>
-
-    <!-- Featured Reviews Section -->
-    <section class="reviews">
-        <div class="container">
-            <h2>Featured Reviews</h2>
-            <div class="review-item">
-                <h3>Intel Core i9-13900K Review</h3>
-                <p>"The i9-13900K is a monster in performance, delivering top-tier gaming experiences at 4K resolutions while multitasking with ease."</p>
+            <div>
+              <label for="ai-color">AI plays</label>
+              <select id="ai-color">
+                <option value="b" selected>Black</option>
+                <option value="w">White</option>
+              </select>
             </div>
-            <div class="review-item">
-                <h3>AMD Ryzen 9 7950X Review</h3>
-                <p>"The Ryzen 9 7950X offers fantastic performance across both gaming and productivity workloads. It's a dream come true for content creators and gamers alike."</p>
-            </div>
+          </div>
+          <div>
+            <label for="ai-depth">AI strength</label>
+            <select id="ai-depth">
+              <option value="1">Easy</option>
+              <option value="2" selected>Medium</option>
+              <option value="3">Hard</option>
+            </select>
+          </div>
         </div>
-    </section>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 The Best Gaming CPUs.</p>
-            <nav>
-                <ul>
-                    <li><a href="file:///C:/Users/Giga%20Store/OneDrive/Documents/privacy.html">Privacy Policy</a></li>
-                    <li><a href="file:///C:/Users/Giga%20Store/OneDrive/Documents/Terms.html">Terms of Service</a></li>
-                    <li><a href="file:///C:/Users/Giga%20Store/OneDrive/Documents/Contact%20Us.html">Contact Us</a></li>
-                </ul>
-            </nav>
+        <div>
+          <label for="fen">Load FEN</label>
+          <input id="fen" placeholder="Paste a valid FEN position" />
+          <div style="height: 8px"></div>
+          <button id="load-fen" style="width: 100%">Load Position</button>
         </div>
-    </footer>
 
-</body>
+        <div>
+          <div class="section-title">Moves (PGN format)</div>
+          <div id="moves" class="moves">1.</div>
+        </div>
 
+        <p class="note">AI uses a minimax search with alpha-beta pruning and material/position scoring.</p>
+      </aside>
+    </main>
+
+    <script type="module">
+      import { Chess } from 'https://esm.sh/chess.js@1.1.0'
+
+      const PIECES = {
+        p: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png',
+        r: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png',
+        n: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png',
+        b: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png',
+        q: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png',
+        k: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png',
+        P: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
+        R: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
+        N: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png',
+        B: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png',
+        Q: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png',
+        K: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png'
+      }
+
+      const PIECE_VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 }
+      const KNIGHT_TABLE = [
+        -50, -40, -30, -30, -30, -30, -40, -50,
+        -40, -20, 0, 0, 0, 0, -20, -40,
+        -30, 0, 10, 15, 15, 10, 0, -30,
+        -30, 5, 15, 20, 20, 15, 5, -30,
+        -30, 0, 15, 20, 20, 15, 0, -30,
+        -30, 5, 10, 15, 15, 10, 5, -30,
+        -40, -20, 0, 5, 5, 0, -20, -40,
+        -50, -40, -30, -30, -30, -30, -40, -50
+      ]
+
+      const boardEl = document.getElementById('board')
+      const statusEl = document.getElementById('status')
+      const movesEl = document.getElementById('moves')
+      const whiteClockEl = document.getElementById('white-clock')
+      const blackClockEl = document.getElementById('black-clock')
+      const timeSelect = document.getElementById('time')
+      const fenInput = document.getElementById('fen')
+      const aiEnabledSelect = document.getElementById('ai-enabled')
+      const aiColorSelect = document.getElementById('ai-color')
+      const aiDepthSelect = document.getElementById('ai-depth')
+
+      const chess = new Chess()
+      let selectedSquare = null
+      let legalTargets = []
+      let flipped = false
+      let timerId
+      let gameOverByTime = false
+      let lastMoveSquares = []
+      let aiThinking = false
+
+      const clocks = { w: 600, b: 600 }
+
+      const squareName = (rank, file) => `${String.fromCharCode(97 + file)}${8 - rank}`
+      const fileLabel = file => String.fromCharCode(97 + file)
+      const isAiEnabled = () => aiEnabledSelect.value === 'on'
+      const aiColor = () => aiColorSelect.value
+      const aiDepth = () => Number(aiDepthSelect.value)
+      const isAiTurn = () => isAiEnabled() && chess.turn() === aiColor() && !chess.isGameOver() && !gameOverByTime
+
+      function formatTime (seconds) {
+        const s = Math.max(0, Math.floor(seconds))
+        const mm = String(Math.floor(s / 60)).padStart(2, '0')
+        const ss = String(s % 60).padStart(2, '0')
+        return `${mm}:${ss}`
+      }
+
+      function setTime (minutes) {
+        clocks.w = minutes * 60
+        clocks.b = minutes * 60
+        updateClocks()
+      }
+
+      function updateClocks () {
+        whiteClockEl.lastElementChild.textContent = formatTime(clocks.w)
+        blackClockEl.lastElementChild.textContent = formatTime(clocks.b)
+        whiteClockEl.classList.toggle('active', chess.turn() === 'w' && !chess.isGameOver() && !gameOverByTime)
+        blackClockEl.classList.toggle('active', chess.turn() === 'b' && !chess.isGameOver() && !gameOverByTime)
+      }
+
+      function stopTimer () {
+        clearInterval(timerId)
+        timerId = null
+      }
+
+      function startTimer () {
+        stopTimer()
+        timerId = setInterval(() => {
+          if (chess.isGameOver() || gameOverByTime) {
+            stopTimer()
+            return
+          }
+
+          const t = chess.turn()
+          clocks[t] -= 1
+          updateClocks()
+
+          if (clocks[t] <= 0) {
+            gameOverByTime = true
+            statusEl.textContent = `${t === 'w' ? 'White' : 'Black'} flagged on time. ${t === 'w' ? 'Black' : 'White'} wins!`
+            stopTimer()
+          }
+        }, 1000)
+      }
+
+      function boardOrder () {
+        const ranks = [...Array(8).keys()]
+        const files = [...Array(8).keys()]
+        return flipped ? { ranks: ranks.reverse(), files } : { ranks, files: files.reverse() }
+      }
+
+      function renderBoard () {
+        boardEl.innerHTML = ''
+        const matrix = chess.board()
+        const { ranks, files } = boardOrder()
+        const checkedSquare = chess.inCheck() && chess.board().flat().find(p => p?.type === 'k' && p.color === chess.turn())
+        const checkedPosition = checkedSquare ? `${checkedSquare.square}` : null
+
+        ranks.forEach(rank => {
+          files.forEach(file => {
+            const sq = squareName(rank, file)
+            const piece = matrix[rank][file]
+            const isLight = (rank + file) % 2 === 0
+
+            const square = document.createElement('button')
+            square.type = 'button'
+            square.className = `square ${isLight ? 'light' : 'dark'}`
+            square.dataset.square = sq
+            square.setAttribute('aria-label', sq)
+            square.disabled = aiThinking || (isAiTurn() && chess.turn() !== (aiColor() === 'w' ? 'b' : 'w'))
+
+            if (piece) {
+              const key = piece.color === 'w' ? piece.type.toUpperCase() : piece.type
+              const img = document.createElement('img')
+              img.className = 'piece'
+              img.alt = `${piece.color}${piece.type}`
+              img.src = PIECES[key]
+              square.appendChild(img)
+            }
+
+            if (selectedSquare === sq) square.classList.add('selected')
+            if (lastMoveSquares.includes(sq)) square.classList.add('last-move')
+            if (checkedPosition === sq) square.classList.add('check')
+            const hint = legalTargets.find(m => m.to === sq)
+            if (hint) square.classList.add(hint.captured ? 'capture' : 'hint')
+
+            if (rank === 7) {
+              const fileCoord = document.createElement('span')
+              fileCoord.className = `coord file ${isLight ? 'on-light' : 'on-dark'}`
+              fileCoord.textContent = fileLabel(file)
+              square.appendChild(fileCoord)
+            }
+
+            if (file === 0) {
+              const rankCoord = document.createElement('span')
+              rankCoord.className = `coord rank ${isLight ? 'on-light' : 'on-dark'}`
+              rankCoord.textContent = String(8 - rank)
+              square.appendChild(rankCoord)
+            }
+
+            square.addEventListener('click', onSquareClick)
+            boardEl.appendChild(square)
+          })
+        })
+      }
+
+      function updateStatus () {
+        if (gameOverByTime) return updateClocks()
+
+        if (chess.isCheckmate()) {
+          statusEl.textContent = `Checkmate! ${chess.turn() === 'w' ? 'Black' : 'White'} wins.`
+        } else if (chess.isStalemate()) {
+          statusEl.textContent = 'Draw by stalemate.'
+        } else if (chess.isThreefoldRepetition()) {
+          statusEl.textContent = 'Draw by threefold repetition.'
+        } else if (chess.isInsufficientMaterial()) {
+          statusEl.textContent = 'Draw by insufficient material.'
+        } else if (chess.isDrawByFiftyMoves()) {
+          statusEl.textContent = 'Draw by 50-move rule.'
+        } else if (chess.isDraw()) {
+          statusEl.textContent = 'Draw.'
+        } else if (chess.inCheck()) {
+          statusEl.textContent = `${chess.turn() === 'w' ? 'White' : 'Black'} to move — CHECK!`
+        } else if (aiThinking) {
+          statusEl.textContent = 'AI is thinking...'
+        } else {
+          statusEl.textContent = `${chess.turn() === 'w' ? 'White' : 'Black'} to move`
+        }
+
+        updateClocks()
+      }
+
+      function renderMoves () {
+        const history = chess.history()
+        if (!history.length) {
+          movesEl.textContent = '1.'
+          return
+        }
+
+        let lines = ''
+        for (let i = 0; i < history.length; i += 2) {
+          const moveNo = Math.floor(i / 2) + 1
+          const white = history[i] ?? ''
+          const black = history[i + 1] ?? ''
+          lines += `${moveNo}. ${white}${black ? ` ${black}` : ''}\n`
+        }
+
+        movesEl.textContent = lines.trim()
+        movesEl.scrollTop = movesEl.scrollHeight
+      }
+
+      function clearSelection () {
+        selectedSquare = null
+        legalTargets = []
+      }
+
+      function evaluateBoard () {
+        if (chess.isCheckmate()) return chess.turn() === 'w' ? -999999 : 999999
+        if (chess.isDraw()) return 0
+
+        const matrix = chess.board()
+        let score = 0
+
+        for (let rank = 0; rank < 8; rank++) {
+          for (let file = 0; file < 8; file++) {
+            const piece = matrix[rank][file]
+            if (!piece) continue
+            const index = rank * 8 + file
+            const mirrored = (7 - rank) * 8 + file
+            const positional = piece.type === 'n' ? (piece.color === 'w' ? KNIGHT_TABLE[mirrored] : KNIGHT_TABLE[index]) : 0
+            const val = PIECE_VALUES[piece.type] + positional
+            score += piece.color === 'w' ? val : -val
+          }
+        }
+
+        return score
+      }
+
+      function minimax (depth, alpha, beta, maximizing) {
+        if (depth === 0 || chess.isGameOver()) return evaluateBoard()
+
+        const moves = chess.moves({ verbose: true })
+        if (maximizing) {
+          let maxEval = -Infinity
+          for (const move of moves) {
+            chess.move(move)
+            const evalScore = minimax(depth - 1, alpha, beta, false)
+            chess.undo()
+            maxEval = Math.max(maxEval, evalScore)
+            alpha = Math.max(alpha, evalScore)
+            if (beta <= alpha) break
+          }
+          return maxEval
+        }
+
+        let minEval = Infinity
+        for (const move of moves) {
+          chess.move(move)
+          const evalScore = minimax(depth - 1, alpha, beta, true)
+          chess.undo()
+          minEval = Math.min(minEval, evalScore)
+          beta = Math.min(beta, evalScore)
+          if (beta <= alpha) break
+        }
+        return minEval
+      }
+
+      function chooseBestMove () {
+        const moves = chess.moves({ verbose: true })
+        if (!moves.length) return null
+
+        const maximizing = chess.turn() === 'w'
+        let bestScore = maximizing ? -Infinity : Infinity
+        let bestMoves = []
+
+        for (const move of moves) {
+          chess.move(move)
+          const score = minimax(aiDepth() - 1, -Infinity, Infinity, !maximizing)
+          chess.undo()
+
+          if ((maximizing && score > bestScore) || (!maximizing && score < bestScore)) {
+            bestScore = score
+            bestMoves = [move]
+          } else if (score === bestScore) {
+            bestMoves.push(move)
+          }
+        }
+
+        return bestMoves[Math.floor(Math.random() * bestMoves.length)]
+      }
+
+      function maybePlayAiTurn () {
+        if (!isAiTurn() || aiThinking) return
+        aiThinking = true
+        clearSelection()
+        updateStatus()
+        renderBoard()
+
+        setTimeout(() => {
+          const bestMove = chooseBestMove()
+          if (bestMove) {
+            const made = chess.move(bestMove)
+            lastMoveSquares = made ? [made.from, made.to] : []
+          }
+          aiThinking = false
+          renderBoard()
+          renderMoves()
+          updateStatus()
+          maybePlayAiTurn()
+        }, 200)
+      }
+
+      function onSquareClick (e) {
+        if (chess.isGameOver() || gameOverByTime || aiThinking || isAiTurn()) return
+
+        const to = e.currentTarget.dataset.square
+        const piece = chess.get(to)
+
+        if (!selectedSquare) {
+          if (piece && piece.color === chess.turn()) {
+            selectedSquare = to
+            legalTargets = chess.moves({ square: to, verbose: true })
+          }
+          return renderBoard()
+        }
+
+        if (to === selectedSquare) {
+          clearSelection()
+          return renderBoard()
+        }
+
+        const isLegal = legalTargets.some(move => move.to === to)
+
+        if (!isLegal && piece && piece.color === chess.turn()) {
+          selectedSquare = to
+          legalTargets = chess.moves({ square: to, verbose: true })
+          return renderBoard()
+        }
+
+        if (isLegal) {
+          const promotion = legalTargets.find(m => m.to === to)?.promotion
+          const made = chess.move({ from: selectedSquare, to, promotion: promotion || 'q' })
+          lastMoveSquares = made ? [made.from, made.to] : []
+          clearSelection()
+          renderBoard()
+          renderMoves()
+          updateStatus()
+          maybePlayAiTurn()
+          return
+        }
+
+        clearSelection()
+        renderBoard()
+      }
+
+      function newGame () {
+        chess.reset()
+        gameOverByTime = false
+        aiThinking = false
+        lastMoveSquares = []
+        clearSelection()
+        setTime(Number(timeSelect.value))
+        renderBoard()
+        renderMoves()
+        updateStatus()
+        startTimer()
+        maybePlayAiTurn()
+      }
+
+      document.getElementById('new-game').addEventListener('click', newGame)
+
+      document.getElementById('undo').addEventListener('click', () => {
+        if (gameOverByTime || aiThinking) return
+        if (chess.history().length) {
+          chess.undo()
+          if (isAiEnabled() && chess.history().length) chess.undo()
+          lastMoveSquares = []
+          clearSelection()
+          renderBoard()
+          renderMoves()
+          updateStatus()
+          maybePlayAiTurn()
+        }
+      })
+
+      document.getElementById('flip').addEventListener('click', () => {
+        flipped = !flipped
+        renderBoard()
+      })
+
+      document.getElementById('copy-pgn').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(chess.pgn() || '(no moves)')
+          statusEl.textContent = 'PGN copied to clipboard.'
+        } catch {
+          statusEl.textContent = 'Unable to copy PGN in this browser context.'
+        }
+      })
+
+      document.getElementById('load-fen').addEventListener('click', () => {
+        const fen = fenInput.value.trim()
+        if (!fen) return
+
+        const loaded = chess.load(fen)
+        if (!loaded) {
+          statusEl.textContent = 'Invalid FEN. Please try again.'
+          return
+        }
+
+        gameOverByTime = false
+        aiThinking = false
+        lastMoveSquares = []
+        clearSelection()
+        renderBoard()
+        renderMoves()
+        updateStatus()
+        startTimer()
+        maybePlayAiTurn()
+      })
+
+      timeSelect.addEventListener('change', () => {
+        if (!chess.history().length) setTime(Number(timeSelect.value))
+      })
+
+      aiEnabledSelect.addEventListener('change', () => {
+        clearSelection()
+        renderBoard()
+        updateStatus()
+        maybePlayAiTurn()
+      })
+      aiColorSelect.addEventListener('change', () => {
+        clearSelection()
+        renderBoard()
+        updateStatus()
+        maybePlayAiTurn()
+      })
+      aiDepthSelect.addEventListener('change', maybePlayAiTurn)
+
+      newGame()
+    </script>
+  </body>
 </html>
