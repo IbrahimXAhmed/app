@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chess.com-style Chess Game</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #2f2c29;
+        --shell: #262522;
+        --panel: #1f1f1d;
+        --panel-2: #2b2a28;
+        --text: #f3f3f2;
+        --muted: #b7b6b3;
+        --light: #eeeed2;
+        --dark: #769656;
+        --light-border: #dad8bc;
+        --dark-border: #67884a;
+        --hint: rgb(44 87 37 / 45%);
+        --last-move: rgb(246 246 105 / 45%);
+        --selected: rgb(255 196 0 / 65%);
+        --check: rgb(224 70 70 / 75%);
+        --active: #81b64c;
+      }
+
+      * {
+        box-sizing: border-box;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at top, #3a3733, var(--bg) 58%);
+        color: var(--text);
+        padding: 22px;
+      }
+
+      .layout {
+        width: min(1240px, 100%);
+        display: grid;
+        grid-template-columns: minmax(360px, 72vh) minmax(300px, 380px);
+        gap: 22px;
+        align-items: start;
+      }
+
+      .board-shell,
+      .side-shell {
+        background: var(--shell);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 12px 38px rgb(0 0 0 / 38%);
+      }
+
+      .clock {
+        background: linear-gradient(90deg, #353432, #2d2c2a);
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-weight: 700;
+        font-size: 1.9vh;
+        min-height: 44px;
+      }
+
+      .clock.active {
+        box-shadow: inset 0 0 0 2px var(--active);
+      }
+
+      .board-wrap {
+        position: relative;
+      }
+
+      .board {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .square {
+        border: none;
+        padding: 0;
+        margin: 0;
+        position: relative;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+      }
+
+      .square.light {
+        background: var(--light);
+      }
+
+      .square.dark {
+        background: var(--dark);
+      }
+
+      .square.selected::before,
+      .square.last-move::before,
+      .square.check::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+      }
+
+      .square.selected::before {
+        background: var(--selected);
+      }
+
+      .square.last-move::before {
+        background: var(--last-move);
+      }
+
+      .square.check::before {
+        background: radial-gradient(circle at center, var(--check) 8%, transparent 72%);
+      }
+
+      .square.hint::after {
+        content: '';
+        width: 28%;
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+        background: var(--hint);
+        position: absolute;
+      }
+
+      .square.capture::after {
+        content: '';
+        width: 82%;
+        height: 82%;
+        border-radius: 50%;
+        border: 0.34vw solid var(--hint);
+        max-width: 84px;
+        max-height: 84px;
+        min-width: 22px;
+        min-height: 22px;
+        position: absolute;
+      }
+
+      .piece {
+        width: 88%;
+        height: 88%;
+        object-fit: contain;
+        position: relative;
+        z-index: 2;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .coord {
+        position: absolute;
+        font-size: clamp(10px, 1.2vh, 12px);
+        line-height: 1;
+        font-weight: 700;
+        opacity: 0.78;
+        z-index: 3;
+        pointer-events: none;
+      }
+
+      .coord.file {
+        right: 6%;
+        bottom: 6%;
+      }
+
+      .coord.rank {
+        left: 6%;
+        top: 6%;
+      }
+
+      .coord.on-light {
+        color: #769656;
+      }
+
+      .coord.on-dark {
+        color: #eeeed2;
+      }
+
+      .side-shell {
+        display: grid;
+        gap: 12px;
+      }
+
+      .status {
+        background: linear-gradient(90deg, #353432, #2e2d2b);
+        border-radius: 10px;
+        padding: 12px;
+        font-weight: 700;
+        min-height: 46px;
+        display: grid;
+        align-items: center;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      button,
+      select,
+      input {
+        border: 1px solid #4c4b48;
+        border-radius: 9px;
+        background: #32312f;
+        color: var(--text);
+        padding: 10px 11px;
+        font-weight: 700;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #3a3936;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+      }
+
+      .section-title {
+        color: var(--muted);
+      }
+
+      .moves {
+        min-height: 190px;
+        max-height: 320px;
+        overflow: auto;
+        background: #2a2927;
+        border-radius: 9px;
+        padding: 10px;
+        line-height: 1.6;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        white-space: pre-wrap;
+      }
+
+      .note {
+        color: var(--muted);
+        line-height: 1.4;
+        margin: 0;
+      }
+
+      @media (max-width: 960px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="layout">
+      <section class="board-shell">
+        <div id="black-clock" class="clock"><span>Black</span><span>10:00</span></div>
+        <div class="board-wrap">
+          <div id="board" class="board" aria-label="Chess board"></div>
+        </div>
+        <div id="white-clock" class="clock active"><span>White</span><span>10:00</span></div>
+      </section>
+
+      <aside class="side-shell">
+        <div id="status" class="status">White to move</div>
+
+        <div class="controls">
+          <button id="new-game">New Game</button>
+          <button id="undo">Undo</button>
+          <button id="flip">Flip Board</button>
+          <button id="copy-pgn">Copy PGN</button>
+        </div>
+
+        <div>
+          <label for="time">Time control (minutes)</label>
+          <select id="time">
+            <option value="1">1+0 (Bullet)</option>
+            <option value="3">3+0 (Blitz)</option>
+            <option value="5">5+0</option>
+            <option value="10" selected>10+0 (Rapid)</option>
+            <option value="15">15+0</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="fen">Load FEN</label>
+          <input id="fen" placeholder="Paste a valid FEN position" />
+          <div style="height: 8px"></div>
+          <button id="load-fen" style="width: 100%">Load Position</button>
+        </div>
+
+        <div>
+          <div class="section-title">Moves (PGN format)</div>
+          <div id="moves" class="moves">1.</div>
+        </div>
+
+        <p class="note">
+          Rules engine is powered by chess.js and supports legal move validation, castling, en passant, promotion,
+          check/checkmate/stalemate, draw by repetition, 50-move rule, and insufficient material.
+        </p>
+      </aside>
+    </main>
+
+    <script type="module">
+      import { Chess } from 'https://esm.sh/chess.js@1.1.0'
+
+      const PIECES = {
+        p: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png',
+        r: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png',
+        n: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png',
+        b: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png',
+        q: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png',
+        k: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png',
+        P: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png',
+        R: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png',
+        N: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png',
+        B: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png',
+        Q: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png',
+        K: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png'
+      }
+
+      const boardEl = document.getElementById('board')
+      const statusEl = document.getElementById('status')
+      const movesEl = document.getElementById('moves')
+      const whiteClockEl = document.getElementById('white-clock')
+      const blackClockEl = document.getElementById('black-clock')
+      const timeSelect = document.getElementById('time')
+      const fenInput = document.getElementById('fen')
+
+      const chess = new Chess()
+      let selectedSquare = null
+      let legalTargets = []
+      let flipped = false
+      let timerId
+      let gameOverByTime = false
+      let lastMoveSquares = []
+
+      const clocks = {
+        w: 600,
+        b: 600
+      }
+
+      const squareName = (rank, file) => `${String.fromCharCode(97 + file)}${8 - rank}`
+      const fileLabel = file => String.fromCharCode(97 + file)
+
+      function formatTime (seconds) {
+        const s = Math.max(0, Math.floor(seconds))
+        const mm = String(Math.floor(s / 60)).padStart(2, '0')
+        const ss = String(s % 60).padStart(2, '0')
+        return `${mm}:${ss}`
+      }
+
+      function setTime (minutes) {
+        clocks.w = minutes * 60
+        clocks.b = minutes * 60
+        updateClocks()
+      }
+
+      function updateClocks () {
+        whiteClockEl.lastElementChild.textContent = formatTime(clocks.w)
+        blackClockEl.lastElementChild.textContent = formatTime(clocks.b)
+
+        whiteClockEl.classList.toggle('active', chess.turn() === 'w' && !chess.isGameOver() && !gameOverByTime)
+        blackClockEl.classList.toggle('active', chess.turn() === 'b' && !chess.isGameOver() && !gameOverByTime)
+      }
+
+      function stopTimer () {
+        clearInterval(timerId)
+        timerId = null
+      }
+
+      function startTimer () {
+        stopTimer()
+        timerId = setInterval(() => {
+          if (chess.isGameOver() || gameOverByTime) {
+            stopTimer()
+            return
+          }
+
+          const t = chess.turn()
+          clocks[t] -= 1
+          updateClocks()
+
+          if (clocks[t] <= 0) {
+            gameOverByTime = true
+            statusEl.textContent = `${t === 'w' ? 'White' : 'Black'} flagged on time. ${
+              t === 'w' ? 'Black' : 'White'
+            } wins!`
+            stopTimer()
+          }
+        }, 1000)
+      }
+
+      function boardOrder () {
+        const ranks = [...Array(8).keys()]
+        const files = [...Array(8).keys()]
+        return flipped ? { ranks: ranks.reverse(), files } : { ranks, files: files.reverse() }
+      }
+
+      function renderBoard () {
+        boardEl.innerHTML = ''
+        const matrix = chess.board()
+        const { ranks, files } = boardOrder()
+        const checkedSquare =
+          chess.inCheck() &&
+          chess
+            .board()
+            .flat()
+            .find(p => p?.type === 'k' && p.color === chess.turn())
+        const checkedPosition = checkedSquare ? `${checkedSquare.square}` : null
+
+        ranks.forEach(rank => {
+          files.forEach(file => {
+            const sq = squareName(rank, file)
+            const piece = matrix[rank][file]
+            const isLight = (rank + file) % 2 === 0
+
+            const square = document.createElement('button')
+            square.type = 'button'
+            square.className = `square ${isLight ? 'light' : 'dark'}`
+            square.dataset.square = sq
+            square.setAttribute('aria-label', sq)
+
+            if (piece) {
+              const key = piece.color === 'w' ? piece.type.toUpperCase() : piece.type
+              const img = document.createElement('img')
+              img.className = 'piece'
+              img.alt = `${piece.color}${piece.type}`
+              img.src = PIECES[key]
+              square.appendChild(img)
+            }
+
+            if (selectedSquare === sq) square.classList.add('selected')
+            if (lastMoveSquares.includes(sq)) square.classList.add('last-move')
+            if (checkedPosition === sq) square.classList.add('check')
+            const hint = legalTargets.find(m => m.to === sq)
+            if (hint) square.classList.add(hint.captured ? 'capture' : 'hint')
+
+            if (rank === 7) {
+              const fileCoord = document.createElement('span')
+              fileCoord.className = `coord file ${isLight ? 'on-light' : 'on-dark'}`
+              fileCoord.textContent = fileLabel(file)
+              square.appendChild(fileCoord)
+            }
+
+            if (file === 0) {
+              const rankCoord = document.createElement('span')
+              rankCoord.className = `coord rank ${isLight ? 'on-light' : 'on-dark'}`
+              rankCoord.textContent = String(8 - rank)
+              square.appendChild(rankCoord)
+            }
+
+            square.addEventListener('click', onSquareClick)
+            boardEl.appendChild(square)
+          })
+        })
+      }
+
+      function updateStatus () {
+        if (gameOverByTime) {
+          updateClocks()
+          return
+        }
+
+        if (chess.isCheckmate()) {
+          statusEl.textContent = `Checkmate! ${chess.turn() === 'w' ? 'Black' : 'White'} wins.`
+        } else if (chess.isStalemate()) {
+          statusEl.textContent = 'Draw by stalemate.'
+        } else if (chess.isThreefoldRepetition()) {
+          statusEl.textContent = 'Draw by threefold repetition.'
+        } else if (chess.isInsufficientMaterial()) {
+          statusEl.textContent = 'Draw by insufficient material.'
+        } else if (chess.isDrawByFiftyMoves()) {
+          statusEl.textContent = 'Draw by 50-move rule.'
+        } else if (chess.isDraw()) {
+          statusEl.textContent = 'Draw.'
+        } else if (chess.inCheck()) {
+          statusEl.textContent = `${chess.turn() === 'w' ? 'White' : 'Black'} to move — CHECK!`
+        } else {
+          statusEl.textContent = `${chess.turn() === 'w' ? 'White' : 'Black'} to move`
+        }
+
+        updateClocks()
+      }
+
+      function renderMoves () {
+        const history = chess.history()
+        if (!history.length) {
+          movesEl.textContent = '1.'
+          return
+        }
+
+        let lines = ''
+        for (let i = 0; i < history.length; i += 2) {
+          const moveNo = Math.floor(i / 2) + 1
+          const white = history[i] ?? ''
+          const black = history[i + 1] ?? ''
+          lines += `${moveNo}. ${white}${black ? ` ${black}` : ''}\n`
+        }
+
+        movesEl.textContent = lines.trim()
+        movesEl.scrollTop = movesEl.scrollHeight
+      }
+
+      function clearSelection () {
+        selectedSquare = null
+        legalTargets = []
+      }
+
+      function onSquareClick (e) {
+        if (chess.isGameOver() || gameOverByTime) return
+
+        const to = e.currentTarget.dataset.square
+        const piece = chess.get(to)
+
+        if (!selectedSquare) {
+          if (piece && piece.color === chess.turn()) {
+            selectedSquare = to
+            legalTargets = chess.moves({ square: to, verbose: true })
+          }
+          renderBoard()
+          return
+        }
+
+        if (to === selectedSquare) {
+          clearSelection()
+          renderBoard()
+          return
+        }
+
+        const isLegal = legalTargets.some(move => move.to === to)
+
+        if (!isLegal && piece && piece.color === chess.turn()) {
+          selectedSquare = to
+          legalTargets = chess.moves({ square: to, verbose: true })
+          renderBoard()
+          return
+        }
+
+        if (isLegal) {
+          const promotion = legalTargets.find(m => m.to === to)?.promotion
+          const made = chess.move({ from: selectedSquare, to, promotion: promotion || 'q' })
+          lastMoveSquares = made ? [made.from, made.to] : []
+          clearSelection()
+          renderBoard()
+          renderMoves()
+          updateStatus()
+          return
+        }
+
+        clearSelection()
+        renderBoard()
+      }
+
+      function newGame () {
+        chess.reset()
+        gameOverByTime = false
+        lastMoveSquares = []
+        clearSelection()
+        setTime(Number(timeSelect.value))
+        renderBoard()
+        renderMoves()
+        updateStatus()
+        startTimer()
+      }
+
+      document.getElementById('new-game').addEventListener('click', newGame)
+
+      document.getElementById('undo').addEventListener('click', () => {
+        if (gameOverByTime) return
+        if (chess.history().length) {
+          chess.undo()
+          lastMoveSquares = []
+          clearSelection()
+          renderBoard()
+          renderMoves()
+          updateStatus()
+        }
+      })
+
+      document.getElementById('flip').addEventListener('click', () => {
+        flipped = !flipped
+        renderBoard()
+      })
+
+      document.getElementById('copy-pgn').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(chess.pgn() || '(no moves)')
+          statusEl.textContent = 'PGN copied to clipboard.'
+        } catch {
+          statusEl.textContent = 'Unable to copy PGN in this browser context.'
+        }
+      })
+
+      document.getElementById('load-fen').addEventListener('click', () => {
+        const fen = fenInput.value.trim()
+        if (!fen) return
+
+        const loaded = chess.load(fen)
+        if (!loaded) {
+          statusEl.textContent = 'Invalid FEN. Please try again.'
+          return
+        }
+
+        gameOverByTime = false
+        lastMoveSquares = []
+        clearSelection()
+        renderBoard()
+        renderMoves()
+        updateStatus()
+        startTimer()
+      })
+
+      timeSelect.addEventListener('change', () => {
+        if (!chess.history().length) {
+          setTime(Number(timeSelect.value))
+        }
+      })
+
+      newGame()
+    </script>
+  </body>
+</html>
