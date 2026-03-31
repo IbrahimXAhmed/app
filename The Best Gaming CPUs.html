@@ -237,6 +237,11 @@
           <button id="copy-pgn">Copy PGN</button>
         </div>
 
+        <div class="controls">
+          <button id="castle-kingside">Castle O-O</button>
+          <button id="castle-queenside">Castle O-O-O</button>
+        </div>
+
         <div>
           <label for="time">Time control (minutes)</label>
           <select id="time">
@@ -288,7 +293,7 @@
           <div id="moves" class="moves">1.</div>
         </div>
 
-        <p class="note">AI uses a minimax search with alpha-beta pruning and material/position scoring.</p>
+        <p class="note">AI uses minimax + alpha-beta pruning. Castling is supported via king move or O-O / O-O-O buttons when legal.</p>
       </aside>
     </main>
 
@@ -603,6 +608,25 @@
         }, 200)
       }
 
+      function attemptCastle (side) {
+        if (chess.isGameOver() || gameOverByTime || aiThinking || isAiTurn()) return
+
+        const san = side === 'kingside' ? 'O-O' : 'O-O-O'
+        const made = chess.move(san)
+
+        if (!made) {
+          statusEl.textContent = `Castling ${side === 'kingside' ? 'kingside' : 'queenside'} is not legal right now.`
+          return
+        }
+
+        lastMoveSquares = [made.from, made.to]
+        clearSelection()
+        renderBoard()
+        renderMoves()
+        updateStatus()
+        maybePlayAiTurn()
+      }
+
       function onSquareClick (e) {
         if (chess.isGameOver() || gameOverByTime || aiThinking || isAiTurn()) return
 
@@ -661,6 +685,8 @@
       }
 
       document.getElementById('new-game').addEventListener('click', newGame)
+      document.getElementById('castle-kingside').addEventListener('click', () => attemptCastle('kingside'))
+      document.getElementById('castle-queenside').addEventListener('click', () => attemptCastle('queenside'))
 
       document.getElementById('undo').addEventListener('click', () => {
         if (gameOverByTime || aiThinking) return
