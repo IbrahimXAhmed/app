@@ -119,6 +119,39 @@
       .square.last-move::before { background: var(--last-move); }
       .square.check::before { background: radial-gradient(circle at center, var(--check) 8%, transparent 72%); }
 
+      .square.checkmate::after {
+        content: '';
+        position: absolute;
+        inset: 14%;
+        border: 0.32vw solid #f3df7b;
+        border-right-color: transparent;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        max-width: 64px;
+        max-height: 64px;
+        min-width: 18px;
+        min-height: 18px;
+        animation: half-rotate 1s ease-in-out infinite alternate;
+        z-index: 4;
+        pointer-events: none;
+      }
+
+      .mate-icon {
+        position: absolute;
+        width: 44%;
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: clamp(14px, 2.1vh, 24px);
+        color: #fff8d9;
+        background: rgb(24 20 20 / 78%);
+        border: 1px solid rgb(250 223 126 / 75%);
+        box-shadow: 0 0 0 2px rgb(0 0 0 / 24%);
+        z-index: 5;
+        pointer-events: none;
+      }
+
       .square.hint::after {
         content: '';
         width: 28%;
@@ -213,6 +246,11 @@
       .stack { display: grid; gap: 8px; }
       .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
       .note { color: var(--muted); line-height: 1.4; margin: 0; }
+
+      @keyframes half-rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(180deg); }
+      }
 
       @media (max-width: 960px) {
         .layout { grid-template-columns: 1fr; }
@@ -316,6 +354,60 @@
       }
 
       const PIECE_VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 }
+
+      let audioCtx
+      function getAudioCtx () {
+        if (!audioCtx) audioCtx = new window.AudioContext()
+        if (audioCtx.state === 'suspended') audioCtx.resume()
+        return audioCtx
+      }
+
+      function tone (freq, duration = 0.08, type = 'triangle', delay = 0, gain = 0.06) {
+        const ctx = getAudioCtx()
+        const osc = ctx.createOscillator()
+        const amp = ctx.createGain()
+        const now = ctx.currentTime + delay
+
+        osc.type = type
+        osc.frequency.setValueAtTime(freq, now)
+        amp.gain.setValueAtTime(0.0001, now)
+        amp.gain.exponentialRampToValueAtTime(gain, now + 0.015)
+        amp.gain.exponentialRampToValueAtTime(0.0001, now + duration)
+
+        osc.connect(amp)
+        amp.connect(ctx.destination)
+        osc.start(now)
+        osc.stop(now + duration + 0.02)
+      }
+
+      function playMoveSound (meta = {}) {
+        if (meta.checkmate) {
+          tone(392, 0.12, 'sawtooth', 0)
+          tone(330, 0.12, 'sawtooth', 0.12)
+          tone(196, 0.25, 'sawtooth', 0.24)
+          return
+        }
+
+        if (meta.castle) {
+          tone(320, 0.07, 'square', 0)
+          tone(480, 0.08, 'square', 0.07)
+          return
+        }
+
+        if (meta.capture) {
+          tone(280, 0.08, 'triangle', 0)
+          tone(210, 0.1, 'triangle', 0.08)
+          return
+        }
+
+        if (meta.check) {
+          tone(520, 0.06, 'sine', 0)
+          tone(620, 0.09, 'sine', 0.07)
+          return
+        }
+
+        tone(420, 0.06, 'triangle', 0)
+      }
       const KNIGHT_TABLE = [
         -50, -40, -30, -30, -30, -30, -40, -50,
         -40, -20, 0, 0, 0, 0, -20, -40,
@@ -413,6 +505,8 @@
         const { ranks, files } = boardOrder()
         const checkedSquare = chess.inCheck() && chess.board().flat().find(p => p?.type === 'k' && p.color === chess.turn())
         const checkedPosition = checkedSquare ? `${checkedSquare.square}` : null
+        const checkmatedSquare = chess.isCheckmate() && chess.board().flat().find(p => p?.type === 'k' && p.color === chess.turn())
+        const checkmatedPosition = checkmatedSquare ? `${checkmatedSquare.square}` : null
 
         ranks.forEach(rank => {
           files.forEach(file => {
@@ -439,8 +533,16 @@
             if (selectedSquare === sq) square.classList.add('selected')
             if (lastMoveSquares.includes(sq)) square.classList.add('last-move')
             if (checkedPosition === sq) square.classList.add('check')
+            if (checkmatedPosition === sq) square.classList.add('checkmate')
             const hint = legalTargets.find(m => m.to === sq)
             if (hint) square.classList.add(hint.captured ? 'capture' : 'hint')
+
+            if (checkmatedPosition === sq && piece?.type === 'k') {
+              const mateIcon = document.createElement('span')
+              mateIcon.className = 'mate-icon'
+              mateIcon.textContent = piece.color === 'w' ? '♔' : '♚'
+              square.appendChild(mateIcon)
+            }
 
             if (rank === 7) {
               const fileCoord = document.createElement('span')
@@ -599,6 +701,12 @@
           if (bestMove) {
             const made = chess.move(bestMove)
             lastMoveSquares = made ? [made.from, made.to] : []
+            playMoveSound({
+              capture: Boolean(made?.captured),
+              castle: Boolean(made?.san?.includes('O-O')),
+              check: chess.inCheck(),
+              checkmate: chess.isCheckmate()
+            })
           }
           aiThinking = false
           renderBoard()
@@ -620,6 +728,11 @@
         }
 
         lastMoveSquares = [made.from, made.to]
+        playMoveSound({
+          castle: true,
+          check: chess.inCheck(),
+          checkmate: chess.isCheckmate()
+        })
         clearSelection()
         renderBoard()
         renderMoves()
@@ -659,6 +772,12 @@
           const made = chess.move({ from: selectedSquare, to, promotion: promotion || 'q' })
           lastMoveSquares = made ? [made.from, made.to] : []
           clearSelection()
+          playMoveSound({
+            capture: Boolean(made?.captured),
+            castle: Boolean(made?.san?.includes('O-O')),
+            check: chess.inCheck(),
+            checkmate: chess.isCheckmate()
+          })
           renderBoard()
           renderMoves()
           updateStatus()
