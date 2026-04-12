@@ -1,422 +1,381 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Discover the best CPUs for gaming in the world, featuring high-performance processors for the ultimate gaming experience.">
-    <meta name="author" content="Your Name or Company">
-    <meta name="keywords" content="best gaming CPUs, gaming processors, high-performance CPUs, Intel i9, AMD Ryzen 9, gaming builds">
-    <title>The Best Gaming CPUs in the World</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="لوحة اختبارات حديثة لعرض الاختبارات القادمة والنتائج بتصميم متقدم وواجهة عربية RTL." />
+  <title>MySchool — Advanced Quiz Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: rgba(255, 255, 255, 0.08);
+      --panel-solid: #111934;
+      --text: #e7edff;
+      --muted: #a9b5df;
+      --primary: #5f86ff;
+      --primary-2: #62d7ff;
+      --success: #2fdd92;
+      --danger: #ff6e7f;
+      --warning: #ffcb57;
+      --ring: rgba(98, 215, 255, 0.35);
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 16px 48px rgba(10, 16, 33, 0.45);
+    }
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    [data-theme="light"] {
+      --bg: #f4f7ff;
+      --panel: rgba(255, 255, 255, 0.8);
+      --panel-solid: #ffffff;
+      --text: #1b2646;
+      --muted: #566087;
+      --primary: #3d66ff;
+      --primary-2: #00a8d8;
+      --ring: rgba(47, 111, 255, 0.2);
+      --border: rgba(17, 35, 80, 0.14);
+      --shadow: 0 14px 40px rgba(34, 59, 118, 0.12);
+    }
 
-    <!-- Favicon -->
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    * {
+      box-sizing: border-box;
+    }
 
-    <style>
-        /* Global Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    body {
+      margin: 0;
+      font-family: "Cairo", system-ui, sans-serif;
+      background:
+        radial-gradient(1200px 800px at 100% -10%, rgba(95, 134, 255, 0.3), transparent 55%),
+        radial-gradient(1000px 640px at 10% -20%, rgba(98, 215, 255, 0.25), transparent 50%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
 
-        /* Body and General Styles */
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            line-height: 1.6;
-        }
+    .app {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 1rem;
+    }
 
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
+    .glass {
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
 
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: center;
+      padding: 1.1rem 1.2rem;
+      margin-bottom: 1rem;
+    }
 
-        /* Header Styles */
-        header {
-            background-color: #111;
-            color: #fff;
-            padding: 20px 0;
-            text-align: center;
-        }
+    .title h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2vw, 1.9rem);
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
 
-        header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #3498db;  /* Blue color for header */
-        }
+    .title p {
+      margin: 0.25rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
 
-        header nav ul {
-            list-style: none;
-            margin-top: 10px;
-        }
+    .actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
 
-        header nav ul li {
-            display: inline;
-            margin: 0 15px;
-        }
+    button,
+    select,
+    input {
+      font: inherit;
+      border: 0;
+      color: inherit;
+    }
 
-        header nav ul li a {
-            color: #fff;
-            font-weight: 500;
-            font-size: 1.1rem;
-            transition: color 0.3s;
-        }
+    .btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: white;
+      border-radius: 12px;
+      padding: 0.62rem 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .2s ease, opacity .2s ease;
+    }
 
-        header nav ul li a:hover {
-            color: #3498db;
-        }
+    .btn:hover { transform: translateY(-1px); }
 
-        /* Hero Section Styles */
-        .hero {
-            background-color: #2c3e50;
-            color: #fff;
-            padding: 60px 0;
-            text-align: center;
-        }
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
 
-        .hero h2 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-            font-weight: bold;  /* Bold text */
-        }
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.7fr 1fr 1fr;
+      gap: .8rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
 
-        .hero p {
-            font-size: 1.2rem;
-            color: #ecf0f1;
-        }
+    .field {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: var(--panel-solid);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
 
-        /* Best CPUs Section */
-        .best-cpus {
-            background-color: #fff;
-            padding: 40px 0;
-        }
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 0.68rem 0.85rem;
+      background: transparent;
+      outline: 0;
+    }
 
-        .best-cpus h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 30px;
-            color: #2c3e50;
-            font-weight: bold;
-        }
+    .field:focus-within {
+      box-shadow: 0 0 0 4px var(--ring);
+      border-color: transparent;
+    }
 
-        .cpu-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-        }
+    .grid {
+      display: grid;
+      gap: 0.8rem;
+    }
 
-        .cpu-item {
-            background-color: #ecf0f1;
-            margin: 15px;
-            padding: 20px;
-            width: 30%;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
+    .card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      padding: 1rem;
+      align-items: center;
+      transition: transform .2s ease, border-color .2s ease;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--panel-solid);
+    }
 
-        .cpu-item h3 {
-            font-size: 1.6rem;
-            font-weight: bold;
-            color: #3498db;  /* Bold and blue color for CPU names */
-            margin-bottom: 10px;
-        }
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: var(--primary-2);
+    }
 
-        .cpu-item p {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            color: #555;
-        }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
 
-        .cpu-item ul {
-            list-style: none;
-            padding-left: 0;
-        }
+    .subject {
+      margin: 0 0 .35rem;
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
 
-        .cpu-item ul li {
-            font-size: 1rem;
-            color: #333;
-        }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      padding: .3rem .55rem;
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
 
-        .cpu-item ul li strong {
-            font-weight: bold;
-            color: #3498db;  /* Highlight the key specs in blue */
-        }
+    .upcoming { background: rgba(47, 221, 146, .12); color: var(--success); border-color: rgba(47,221,146,.3); }
+    .done { background: rgba(255, 203, 87, .12); color: var(--warning); border-color: rgba(255,203,87,.3); }
 
-        /* Why Choose Section */
-        .why-choose {
-            padding: 40px 0;
-            background-color: #ecf0f1;
-        }
+    .score {
+      min-width: 64px;
+      text-align: center;
+      padding: .55rem .65rem;
+      border-radius: 10px;
+      font-weight: 800;
+      background: rgba(95, 134, 255, .14);
+      border: 1px solid rgba(95, 134, 255, .4);
+    }
 
-        .why-choose h2 {
-            text-align: center;
-            font-size: 2rem;
-            color: #2c3e50;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 2rem;
+      border-radius: 14px;
+      background: var(--panel-solid);
+      border: 1px dashed var(--border);
+    }
 
-        .why-choose p {
-            font-size: 1.2rem;
-            color: #555;
-            line-height: 1.8;
-            text-align: center;
-        }
-
-        /* Reviews Section */
-        .reviews {
-            padding: 40px 0;
-            background-color: #fff;
-        }
-
-        .reviews h2 {
-            text-align: center;
-            font-size: 2rem;
-            color: #2c3e50;
-            font-weight: bold;
-            margin-bottom: 30px;
-        }
-
-        .review-item {
-            background-color: #ecf0f1;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .review-item h3 {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #3498db;
-            margin-bottom: 10px;
-        }
-
-        .review-item p {
-            font-size: 1.1rem;
-            color: #555;
-        }
-
-        /* Footer Styles */
-        footer {
-            background-color: #111;
-            color: #fff;
-            padding: 20px 0;
-            text-align: center;
-        }
-
-        footer p {
-            font-size: 1rem;
-            margin-bottom: 10px;
-        }
-
-        footer nav ul {
-            list-style: none;
-            margin-top: 10px;
-        }
-
-        footer nav ul li {
-            display: inline;
-            margin: 0 15px;
-        }
-
-        footer nav ul li a {
-            color: #fff;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        footer nav ul li a:hover {
-            color: #3498db;
-        }
-
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            .cpu-item {
-                width: 48%;
-            }
-
-            .cpu-list {
-                justify-content: space-around;
-            }
-
-            .hero h2 {
-                font-size: 1.8rem;
-            }
-
-            .hero p {
-                font-size: 1.1rem;
-            }
-
-            .why-choose p,
-            .reviews p {
-                font-size: 1rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .cpu-item {
-                width: 100%;
-            }
-
-            header h1 {
-                font-size: 2rem;
-            }
-
-            .hero h2 {
-                font-size: 1.6rem;
-            }
-
-            .hero p {
-                font-size: 1rem;
-            }
-        }
-    </style>
+    @media (max-width: 900px) {
+      .toolbar { grid-template-columns: 1fr; }
+      .header { grid-template-columns: 1fr; }
+      .actions { justify-content: flex-start; }
+      .card { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 
 <body>
-
-    <!-- Header -->
-    <header>
-        <div class="container">
-            <h1>The Best Gaming CPUs</h1>
-            <nav>
-                <ul>
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#">Best CPUs</a></li>
-                    <li><a href="#">Reviews</a></li>
-                    <li><a href="#">News</a></li>
-                    <li><a href="#">About Us</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <h2>Discover the Best CPUs for Gaming</h2>
-            <p>Unleash the power of the best gaming processors with high frame rates, low latency, and unparalleled gaming performance.</p>
-        </div>
+  <main class="app">
+    <section class="header glass">
+      <div class="title">
+        <h1>لوحة الاختبارات الذكية</h1>
+        <p>تصميم احترافي ببحث لحظي، فرز ديناميكي، ووضع ليلي/نهاري.</p>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" id="themeToggle" aria-label="تبديل الثيم">🌓 تبديل الثيم</button>
+        <button class="btn" id="resetFilters">إعادة الضبط</button>
+      </div>
     </section>
 
-    <!-- Top Gaming CPUs Section -->
-    <section class="best-cpus">
-        <div class="container">
-            <h2>Top 5 Gaming CPUs of 2024</h2>
-            <div class="cpu-list">
-                <!-- CPU Item -->
-                <article class="cpu-item">
-                    <h3>Intel Core i9-13900K</h3>
-                    <p>The Intel Core i9-13900K is a powerhouse CPU offering exceptional multi-core performance, making it ideal for demanding games and content creation.</p>
-                    <ul>
-                        <li><strong>Cores:</strong> 24</li>
-                        <li><strong>Threads:</strong> 32</li>
-                        <li><strong>Base Clock:</strong> 3.0 GHz</li>
-                        <li><strong>Max Turbo:</strong> 5.8 GHz</li>
-                    </ul>
-                </article>
+    <section class="toolbar glass" aria-label="filters">
+      <label class="field">
+        <input id="searchInput" type="search" placeholder="ابحث بالمادة أو اسم المعلم..." />
+      </label>
+      <label class="field">
+        <select id="statusFilter">
+          <option value="all">كل الحالات</option>
+          <option value="upcoming">اختبارات قادمة</option>
+          <option value="done">اختبارات منتهية</option>
+        </select>
+      </label>
+      <label class="field">
+        <select id="sortBy">
+          <option value="date-desc">الأحدث أولًا</option>
+          <option value="date-asc">الأقدم أولًا</option>
+          <option value="subject-asc">المادة (أ-ي)</option>
+        </select>
+      </label>
+    </section>
 
-                <!-- CPU Item -->
-                <article class="cpu-item">
-                    <h3>AMD Ryzen 9 7950X</h3>
-                    <p>The AMD Ryzen 9 7950X is perfect for gamers and creators who need raw performance. With 16 cores, it tackles multi-threaded applications with ease.</p>
-                    <ul>
-                        <li><strong>Cores:</strong> 16</li>
-                        <li><strong>Threads:</strong> 32</li>
-                        <li><strong>Base Clock:</strong> 4.5 GHz</li>
-                        <li><strong>Max Boost:</strong> 5.7 GHz</li>
-                    </ul>
-                </article>
+    <section id="quizGrid" class="grid" aria-live="polite"></section>
+  </main>
 
-                <!-- CPU Item -->
-                <article class="cpu-item">
-                    <h3>Intel Core i7-13700K</h3>
-                    <p>Offering great performance for both gaming and productivity, the Intel Core i7-13700K is a balanced option for gamers who need both power and value.</p>
-                    <ul>
-                        <li><strong>Cores:</strong> 16</li>
-                        <li><strong>Threads:</strong> 24</li>
-                        <li><strong>Base Clock:</strong> 3.4 GHz</li>
-                        <li><strong>Max Turbo:</strong> 5.4 GHz</li>
-                    </ul>
-                </article>
+  <script>
+    const quizzes = [
+      { id: 3275, subject: 'رياضيات', teacher: 'همسه أحمد رجب', date: '2026-04-11', duration: 30, status: 'upcoming', score: null },
+      { id: 3273, subject: 'اللغة الإنجليزية', teacher: 'رضا حمدي', date: '2026-04-09', duration: 30, status: 'upcoming', score: null },
+      { id: 3271, subject: 'رياضيات', teacher: 'همسه أحمد رجب', date: '2026-03-13', duration: 30, status: 'done', score: 86 },
+      { id: 3266, subject: 'اللغة الإنجليزية', teacher: 'رضا حمدي', date: '2026-03-12', duration: 30, status: 'done', score: 91 },
+      { id: 3251, subject: 'رياضيات', teacher: 'همسه أحمد رجب', date: '2026-02-13', duration: 30, status: 'done', score: 78 }
+    ];
 
-                <!-- CPU Item -->
-                <article class="cpu-item">
-                    <h3>AMD Ryzen 7 7800X3D</h3>
-                    <p>The Ryzen 7 7800X3D features AMD's revolutionary 3D V-Cache technology, offering superior gaming performance by improving cache efficiency.</p>
-                    <ul>
-                        <li><strong>Cores:</strong> 8</li>
-                        <li><strong>Threads:</strong> 16</li>
-                        <li><strong>Base Clock:</strong> 4.2 GHz</li>
-                        <li><strong>Max Boost:</strong> 5.0 GHz</li>
-                    </ul>
-                </article>
+    const els = {
+      grid: document.getElementById('quizGrid'),
+      searchInput: document.getElementById('searchInput'),
+      statusFilter: document.getElementById('statusFilter'),
+      sortBy: document.getElementById('sortBy'),
+      resetFilters: document.getElementById('resetFilters'),
+      themeToggle: document.getElementById('themeToggle')
+    };
 
-                <!-- CPU Item -->
-                <article class="cpu-item">
-                    <h3>Intel Core i5-13600K</h3>
-                    <p>The i5-13600K is an affordable option that still provides great performance for 1080p and 1440p gaming, without sacrificing speed or efficiency.</p>
-                    <ul>
-                        <li><strong>Cores:</strong> 14</li>
-                        <li><strong>Threads:</strong> 20</li>
-                        <li><strong>Base Clock:</strong> 3.5 GHz</li>
-                        <li><strong>Max Turbo:</strong> 5.1 GHz</li>
-                    </ul>
-                </article>
+    const dateFormatter = new Intl.DateTimeFormat('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    function getViewModel() {
+      const q = els.searchInput.value.trim().toLowerCase();
+      const status = els.statusFilter.value;
+      const sort = els.sortBy.value;
+
+      let model = quizzes.filter(item => {
+        const text = `${item.subject} ${item.teacher}`.toLowerCase();
+        const statusMatch = status === 'all' || item.status === status;
+        const queryMatch = !q || text.includes(q);
+        return statusMatch && queryMatch;
+      });
+
+      model.sort((a, b) => {
+        if (sort === 'date-asc') return new Date(a.date) - new Date(b.date);
+        if (sort === 'subject-asc') return a.subject.localeCompare(b.subject, 'ar');
+        return new Date(b.date) - new Date(a.date);
+      });
+
+      return model;
+    }
+
+    function statusLabel(status) {
+      return status === 'upcoming'
+        ? '<span class="pill upcoming">● قادم</span>'
+        : '<span class="pill done">● منتهي</span>';
+    }
+
+    function cardTemplate(item) {
+      const action = item.status === 'upcoming'
+        ? '<button class="btn" type="button">ابدأ الاختبار</button>'
+        : '<button class="btn ghost" type="button">عرض النتيجة</button>';
+
+      const score = item.score === null ? '' : `<div class="score">${item.score}%</div>`;
+
+      return `
+        <article class="card">
+          <div>
+            <h3 class="subject">${item.subject}</h3>
+            <div class="meta">
+              ${statusLabel(item.status)}
+              <span>📅 ${dateFormatter.format(new Date(item.date))}</span>
+              <span>⏱ ${item.duration} دقيقة</span>
+              <span>👨‍🏫 ${item.teacher}</span>
             </div>
-        </div>
-    </section>
+          </div>
+          <div style="display:flex; gap:.5rem; align-items:center;">${score}${action}</div>
+        </article>
+      `;
+    }
 
-    <!-- Why Choose These CPUs Section -->
-    <section class="why-choose">
-        <div class="container">
-            <h2>Why These CPUs?</h2>
-            <p>These processors were selected based on their outstanding performance in gaming benchmarks, multitasking ability, and overall efficiency. Whether you're an enthusiast or a casual gamer, these CPUs will provide the reliability and power you need for next-gen gaming experiences.</p>
-        </div>
-    </section>
+    function render() {
+      const list = getViewModel();
+      if (!list.length) {
+        els.grid.innerHTML = '<div class="empty">لا توجد نتائج مطابقة للفلاتر الحالية.</div>';
+        return;
+      }
+      els.grid.innerHTML = list.map(cardTemplate).join('');
+    }
 
-    <!-- Featured Reviews Section -->
-    <section class="reviews">
-        <div class="container">
-            <h2>Featured Reviews</h2>
-            <div class="review-item">
-                <h3>Intel Core i9-13900K Review</h3>
-                <p>"The i9-13900K is a monster in performance, delivering top-tier gaming experiences at 4K resolutions while multitasking with ease."</p>
-            </div>
-            <div class="review-item">
-                <h3>AMD Ryzen 9 7950X Review</h3>
-                <p>"The Ryzen 9 7950X offers fantastic performance across both gaming and productivity workloads. It's a dream come true for content creators and gamers alike."</p>
-            </div>
-        </div>
-    </section>
+    function setTheme(nextTheme) {
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      localStorage.setItem('dashboard-theme', nextTheme);
+    }
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 The Best Gaming CPUs.</p>
-            <nav>
-                <ul>
-                    <li><a href="file:///C:/Users/Giga%20Store/OneDrive/Documents/privacy.html">Privacy Policy</a></li>
-                    <li><a href="file:///C:/Users/Giga%20Store/OneDrive/Documents/Terms.html">Terms of Service</a></li>
-                    <li><a href="file:///C:/Users/Giga%20Store/OneDrive/Documents/Contact%20Us.html">Contact Us</a></li>
-                </ul>
-            </nav>
-        </div>
-    </footer>
+    function initTheme() {
+      const stored = localStorage.getItem('dashboard-theme');
+      const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+      setTheme(stored || (prefersLight ? 'light' : 'dark'));
+    }
 
+    [els.searchInput, els.statusFilter, els.sortBy].forEach(el => el.addEventListener('input', render));
+    els.resetFilters.addEventListener('click', () => {
+      els.searchInput.value = '';
+      els.statusFilter.value = 'all';
+      els.sortBy.value = 'date-desc';
+      render();
+    });
+
+    els.themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    initTheme();
+    render();
+  </script>
 </body>
 
 </html>
