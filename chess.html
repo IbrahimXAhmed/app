@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chess.com-style Chess Game</title>
+    <style>
+      :root { color-scheme: dark; --bg: #2f2c29; --shell: #262522; --clock-bg: #1f2a3a; --clock-active: #32465f; --panel: #1f1f1d; --text: #f3f3f2; --muted: #b7b6b3; --light: #eeeed2; --dark: #769656; --hint: rgb(44 87 37 / 45%); --last-move: rgb(246 246 105 / 45%); --selected: rgb(255 196 0 / 65%); --check: rgb(224 70 70 / 75%); --active: #81b64c; }
+      * { box-sizing: border-box; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: radial-gradient(circle at top, #3a3733, var(--bg) 58%); color: var(--text); padding: 22px; }
+      .layout { width: min(1240px, 100%); display: grid; grid-template-columns: minmax(360px, 72vh) minmax(300px, 380px); gap: 22px; align-items: start; }
+      .board-shell,.side-shell { background: var(--shell); border-radius: 14px; padding: 14px; box-shadow: 0 12px 38px rgb(0 0 0 / 38%); }
+      .board-shell { padding: 0; overflow: hidden; border: 2px solid #1a1c20; }
+      .clock { background: var(--clock-bg); border-radius: 0; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; font-weight: 700; font-size: clamp(18px, 2.1vh, 28px); min-height: 40px; font-family: 'Trebuchet MS', Inter, Arial, sans-serif; letter-spacing: 0.3px; }
+      .clock.active { background: var(--clock-active); }
+      .board { width: 100%; aspect-ratio: 1 / 1; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr)); border-radius: 0; overflow: hidden; border-top: 2px solid #101112; border-bottom: 2px solid #101112; }
+      .square { border: none; padding: 0; margin: 0; min-width: 0; min-height: 0; width: 100%; height: 100%; position: relative; display: grid; place-items: center; cursor: pointer; }
+      .square.light { background: var(--light); }
+      .square.dark { background: var(--dark); }
+      .square.selected::before,.square.last-move::before,.square.check::before { content: ''; position: absolute; inset: 0; }
+      .square.selected::before { background: var(--selected); }
+      .square.last-move::before { background: var(--last-move); }
+      .square.check::before { background: radial-gradient(circle at center, var(--check) 8%, transparent 72%); }
+      .square.checkmate::after { content: ''; position: absolute; inset: 14%; border: 0.32vw solid #f3df7b; border-right-color: transparent; border-bottom-color: transparent; border-radius: 50%; max-width: 64px; max-height: 64px; min-width: 18px; min-height: 18px; animation: half-rotate 1s ease-in-out infinite alternate; z-index: 4; pointer-events: none; }
+      .mate-icon { position: absolute; width: 44%; aspect-ratio: 1 / 1; border-radius: 50%; display: grid; place-items: center; font-size: clamp(14px, 2.1vh, 24px); color: #fff8d9; background: rgb(24 20 20 / 78%); border: 1px solid rgb(250 223 126 / 75%); box-shadow: 0 0 0 2px rgb(0 0 0 / 24%); z-index: 5; pointer-events: none; }
+      .square.hint::after { content: ''; width: 28%; aspect-ratio: 1 / 1; border-radius: 50%; background: var(--hint); position: absolute; }
+      .square.capture::after { content: ''; width: 82%; height: 82%; border-radius: 50%; border: 0.34vw solid var(--hint); max-width: 84px; max-height: 84px; min-width: 22px; min-height: 22px; position: absolute; }
+      .piece { width: 92%; height: 92%; object-fit: contain; position: relative; z-index: 2; pointer-events: none; user-select: none; }
+      .coord { position: absolute; font-size: clamp(10px, 1.1vh, 12px); line-height: 1; font-weight: 700; opacity: 0.65; z-index: 3; pointer-events: none; }
+      .coord.file { right: 6%; bottom: 6%; } .coord.rank { left: 6%; top: 6%; }
+      .coord.on-light { color: #769656; } .coord.on-dark { color: #eeeed2; }
+      .side-shell { display: grid; gap: 12px; }
+      .status { background: linear-gradient(90deg, #353432, #2e2d2b); border-radius: 10px; padding: 12px; font-weight: 700; min-height: 46px; display: grid; align-items: center; }
+      .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      button, select, input { border: 1px solid #4c4b48; border-radius: 9px; background: #32312f; color: var(--text); padding: 10px 11px; font-weight: 700; }
+      button { cursor: pointer; } button:hover { background: #3a3936; }
+      label { display: block; margin-bottom: 6px; color: var(--muted); }
+      .section-title { color: var(--muted); }
+      .moves { min-height: 190px; max-height: 320px; overflow: auto; background: #2a2927; border-radius: 9px; padding: 10px; line-height: 1.6; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
+      .stack { display: grid; gap: 8px; } .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .note { color: var(--muted); line-height: 1.4; margin: 0; }
+      @keyframes half-rotate { from { transform: rotate(0deg); } to { transform: rotate(180deg); } }
+      @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <main class="layout">
+      <section class="board-shell">
+        <div id="black-clock" class="clock"><span>Black</span><span>10:00</span></div>
+        <div id="board" class="board" aria-label="Chess board"></div>
+        <div id="white-clock" class="clock active"><span>White</span><span>10:00</span></div>
+      </section>
+      <aside class="side-shell">
+        <div id="status" class="status">White to move</div>
+        <div class="controls">
+          <button id="new-game">New Game</button><button id="undo">Undo</button><button id="flip">Flip Board</button><button id="copy-pgn">Copy PGN</button>
+        </div>
+        <div class="controls">
+          <button id="castle-kingside">Castle O-O</button><button id="castle-queenside">Castle O-O-O</button>
+        </div>
+        <div>
+          <label for="time">Time control (minutes)</label>
+          <select id="time"><option value="1">1+0 (Bullet)</option><option value="3">3+0 (Blitz)</option><option value="5">5+0</option><option value="10" selected>10+0 (Rapid)</option><option value="15">15+0</option></select>
+        </div>
+        <div class="stack"><div class="section-title">AI rival</div><div class="grid-2"><div><label for="ai-enabled">Mode</label><select id="ai-enabled"><option value="off">2 Players</option><option value="on" selected>Vs AI</option></select></div><div><label for="ai-color">AI plays</label><select id="ai-color"><option value="b" selected>Black</option><option value="w">White</option></select></div></div><div><label for="ai-depth">AI strength</label><select id="ai-depth"><option value="1">Easy</option><option value="2" selected>Medium</option><option value="3">Hard</option></select></div></div>
+        <div><label for="fen">Load FEN</label><input id="fen" placeholder="Paste a valid FEN position" /><div style="height: 8px"></div><button id="load-fen" style="width: 100%">Load Position</button></div>
+        <div><div class="section-title">Moves (PGN format)</div><div id="moves" class="moves">1.</div></div>
+        <p class="note">AI uses minimax + alpha-beta pruning. Castling is supported via king move or O-O / O-O-O buttons when legal.</p>
+      </aside>
+    </main>
+
+    <script type="module">
+      import { Chess } from 'https://esm.sh/chess.js@1.1.0'
+
+      const PIECES = {
+        p: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bp.png', r: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/br.png', n: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bn.png', b: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bb.png', q: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bq.png', k: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/bk.png',
+        P: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wp.png', R: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wr.png', N: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wn.png', B: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wb.png', Q: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wq.png', K: 'https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png'
+      }
+      const PIECE_VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 }
+      let audioCtx
+      function getAudioCtx () { if (!audioCtx) audioCtx = new window.AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx }
+      function tone (freq, duration = 0.08, type = 'triangle', delay = 0, gain = 0.06) {
+        const ctx = getAudioCtx(); const osc = ctx.createOscillator(); const amp = ctx.createGain(); const now = ctx.currentTime + delay
+        osc.type = type; osc.frequency.setValueAtTime(freq, now); amp.gain.setValueAtTime(0.0001, now); amp.gain.exponentialRampToValueAtTime(gain, now + 0.015); amp.gain.exponentialRampToValueAtTime(0.0001, now + duration)
+        osc.connect(amp); amp.connect(ctx.destination); osc.start(now); osc.stop(now + duration + 0.02)
+      }
+      function playMoveSound (meta = {}) {
+        if (meta.checkmate) return tone(392, 0.12, 'sawtooth', 0), tone(330, 0.12, 'sawtooth', 0.12), tone(196, 0.25, 'sawtooth', 0.24)
+        if (meta.castle) return tone(320, 0.07, 'square', 0), tone(480, 0.08, 'square', 0.07)
+        if (meta.capture) return tone(280, 0.08, 'triangle', 0), tone(210, 0.1, 'triangle', 0.08)
+        if (meta.check) return tone(520, 0.06, 'sine', 0), tone(620, 0.09, 'sine', 0.07)
+        tone(420, 0.06, 'triangle', 0)
+      }
+
+      const KNIGHT_TABLE = [-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,0,0,0,-20,-40,-30,0,10,15,15,10,0,-30,-30,5,15,20,20,15,5,-30,-30,0,15,20,20,15,0,-30,-30,5,10,15,15,10,5,-30,-40,-20,0,5,5,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50]
+      const boardEl = document.getElementById('board'), statusEl = document.getElementById('status'), movesEl = document.getElementById('moves'), whiteClockEl = document.getElementById('white-clock'), blackClockEl = document.getElementById('black-clock')
+      const timeSelect = document.getElementById('time'), fenInput = document.getElementById('fen'), aiEnabledSelect = document.getElementById('ai-enabled'), aiColorSelect = document.getElementById('ai-color'), aiDepthSelect = document.getElementById('ai-depth')
+      const chess = new Chess()
+      let selectedSquare = null, legalTargets = [], flipped = false, timerId, gameOverByTime = false, lastMoveSquares = [], aiThinking = false
+      const clocks = { w: 600, b: 600 }
+      const squareName = (rank, file) => `${String.fromCharCode(97 + file)}${8 - rank}`
+      const fileLabel = file => String.fromCharCode(97 + file)
+      const isAiEnabled = () => aiEnabledSelect.value === 'on'
+      const aiColor = () => aiColorSelect.value
+      const aiDepth = () => Number(aiDepthSelect.value)
+      const isAiTurn = () => isAiEnabled() && chess.turn() === aiColor() && !chess.isGameOver() && !gameOverByTime
+      const formatTime = s => `${String(Math.floor(Math.max(0, Math.floor(s)) / 60)).padStart(2, '0')}:${String(Math.max(0, Math.floor(s)) % 60).padStart(2, '0')}`
+
+      function choosePromotionPiece () {
+        const answer = window.prompt('Pawn promotion: choose Q, R, B, or N', 'Q')
+        if (!answer) return 'q'
+        const normalized = answer.trim().toLowerCase()
+        return ['q', 'r', 'b', 'n'].includes(normalized) ? normalized : 'q'
+      }
+
+      function setTime (minutes) { clocks.w = minutes * 60; clocks.b = minutes * 60; updateClocks() }
+      function updateClocks () { whiteClockEl.lastElementChild.textContent = formatTime(clocks.w); blackClockEl.lastElementChild.textContent = formatTime(clocks.b); whiteClockEl.classList.toggle('active', chess.turn() === 'w' && !chess.isGameOver() && !gameOverByTime); blackClockEl.classList.toggle('active', chess.turn() === 'b' && !chess.isGameOver() && !gameOverByTime) }
+      function stopTimer () { clearInterval(timerId); timerId = null }
+      function startTimer () { stopTimer(); timerId = setInterval(() => { if (chess.isGameOver() || gameOverByTime) return stopTimer(); const t = chess.turn(); clocks[t] -= 1; updateClocks(); if (clocks[t] <= 0) { gameOverByTime = true; statusEl.textContent = `${t === 'w' ? 'White' : 'Black'} flagged on time. ${t === 'w' ? 'Black' : 'White'} wins!`; stopTimer() } }, 1000) }
+      function boardOrder () { const ranks = [...Array(8).keys()]; const files = [...Array(8).keys()]; return flipped ? { ranks: ranks.reverse(), files } : { ranks, files: files.reverse() } }
+
+      function renderBoard () {
+        boardEl.innerHTML = ''
+        const matrix = chess.board(); const { ranks, files } = boardOrder(); const checkedSquare = chess.inCheck() && chess.board().flat().find(p => p?.type === 'k' && p.color === chess.turn()); const checkedPosition = checkedSquare ? `${checkedSquare.square}` : null
+        const checkmatedSquare = chess.isCheckmate() && chess.board().flat().find(p => p?.type === 'k' && p.color === chess.turn()); const checkmatedPosition = checkmatedSquare ? `${checkmatedSquare.square}` : null
+        ranks.forEach(rank => files.forEach(file => {
+          const sq = squareName(rank, file); const piece = matrix[rank][file]; const isLight = (rank + file) % 2 === 0
+          const square = document.createElement('button'); square.type = 'button'; square.className = `square ${isLight ? 'light' : 'dark'}`; square.dataset.square = sq; square.setAttribute('aria-label', sq)
+          square.disabled = aiThinking || (isAiTurn() && chess.turn() !== (aiColor() === 'w' ? 'b' : 'w'))
+          if (piece) { const key = piece.color === 'w' ? piece.type.toUpperCase() : piece.type; const img = document.createElement('img'); img.className = 'piece'; img.alt = `${piece.color}${piece.type}`; img.src = PIECES[key]; square.appendChild(img) }
+          if (selectedSquare === sq) square.classList.add('selected'); if (lastMoveSquares.includes(sq)) square.classList.add('last-move'); if (checkedPosition === sq) square.classList.add('check'); if (checkmatedPosition === sq) square.classList.add('checkmate')
+          const hint = legalTargets.find(m => m.to === sq); if (hint) square.classList.add(hint.captured ? 'capture' : 'hint')
+          if (checkmatedPosition === sq && piece?.type === 'k') { const mateIcon = document.createElement('span'); mateIcon.className = 'mate-icon'; mateIcon.textContent = piece.color === 'w' ? '♔' : '♚'; square.appendChild(mateIcon) }
+          if (rank === 7) { const fileCoord = document.createElement('span'); fileCoord.className = `coord file ${isLight ? 'on-light' : 'on-dark'}`; fileCoord.textContent = fileLabel(file); square.appendChild(fileCoord) }
+          if (file === 0) { const rankCoord = document.createElement('span'); rankCoord.className = `coord rank ${isLight ? 'on-light' : 'on-dark'}`; rankCoord.textContent = String(8 - rank); square.appendChild(rankCoord) }
+          square.addEventListener('click', onSquareClick); boardEl.appendChild(square)
+        }))
+      }
+
+      function updateStatus () {
+        if (gameOverByTime) return updateClocks()
+        if (chess.isCheckmate()) statusEl.textContent = `Checkmate! ${chess.turn() === 'w' ? 'Black' : 'White'} wins.`
+        else if (chess.isStalemate()) statusEl.textContent = 'Draw by stalemate.'
+        else if (chess.isThreefoldRepetition()) statusEl.textContent = 'Draw by threefold repetition.'
+        else if (chess.isInsufficientMaterial()) statusEl.textContent = 'Draw by insufficient material.'
+        else if (chess.isDrawByFiftyMoves()) statusEl.textContent = 'Draw by 50-move rule.'
+        else if (chess.isDraw()) statusEl.textContent = 'Draw.'
+        else if (chess.inCheck()) statusEl.textContent = `${chess.turn() === 'w' ? 'White' : 'Black'} to move — CHECK!`
+        else if (aiThinking) statusEl.textContent = 'AI is thinking...'
+        else statusEl.textContent = `${chess.turn() === 'w' ? 'White' : 'Black'} to move`
+        updateClocks()
+      }
+
+      function renderMoves () {
+        const history = chess.history(); if (!history.length) return (movesEl.textContent = '1.')
+        let lines = ''
+        for (let i = 0; i < history.length; i += 2) { const moveNo = Math.floor(i / 2) + 1; const white = history[i] ?? ''; const black = history[i + 1] ?? ''; lines += `${moveNo}. ${white}${black ? ` ${black}` : ''}\n` }
+        movesEl.textContent = lines.trim(); movesEl.scrollTop = movesEl.scrollHeight
+      }
+
+      function clearSelection () { selectedSquare = null; legalTargets = [] }
+      function evaluateBoard () {
+        if (chess.isCheckmate()) return chess.turn() === 'w' ? -999999 : 999999
+        if (chess.isDraw()) return 0
+        const matrix = chess.board(); let score = 0
+        for (let rank = 0; rank < 8; rank++) for (let file = 0; file < 8; file++) {
+          const piece = matrix[rank][file]; if (!piece) continue
+          const index = rank * 8 + file; const mirrored = (7 - rank) * 8 + file; const positional = piece.type === 'n' ? (piece.color === 'w' ? KNIGHT_TABLE[mirrored] : KNIGHT_TABLE[index]) : 0
+          const val = PIECE_VALUES[piece.type] + positional; score += piece.color === 'w' ? val : -val
+        }
+        return score
+      }
+      function minimax (depth, alpha, beta, maximizing) {
+        if (depth === 0 || chess.isGameOver()) return evaluateBoard()
+        const moves = chess.moves({ verbose: true })
+        if (maximizing) { let maxEval = -Infinity; for (const move of moves) { chess.move(move); const evalScore = minimax(depth - 1, alpha, beta, false); chess.undo(); maxEval = Math.max(maxEval, evalScore); alpha = Math.max(alpha, evalScore); if (beta <= alpha) break } return maxEval }
+        let minEval = Infinity; for (const move of moves) { chess.move(move); const evalScore = minimax(depth - 1, alpha, beta, true); chess.undo(); minEval = Math.min(minEval, evalScore); beta = Math.min(beta, evalScore); if (beta <= alpha) break } return minEval
+      }
+      function chooseBestMove () {
+        const moves = chess.moves({ verbose: true }); if (!moves.length) return null
+        const maximizing = chess.turn() === 'w'; let bestScore = maximizing ? -Infinity : Infinity; let bestMoves = []
+        for (const move of moves) { chess.move(move); const score = minimax(aiDepth() - 1, -Infinity, Infinity, !maximizing); chess.undo(); if ((maximizing && score > bestScore) || (!maximizing && score < bestScore)) { bestScore = score; bestMoves = [move] } else if (score === bestScore) bestMoves.push(move) }
+        return bestMoves[Math.floor(Math.random() * bestMoves.length)]
+      }
+      function maybePlayAiTurn () {
+        if (!isAiTurn() || aiThinking) return
+        aiThinking = true; clearSelection(); updateStatus(); renderBoard()
+        setTimeout(() => {
+          const bestMove = chooseBestMove()
+          if (bestMove) { const made = chess.move(bestMove); lastMoveSquares = made ? [made.from, made.to] : []; playMoveSound({ capture: Boolean(made?.captured), castle: Boolean(made?.san?.includes('O-O')), check: chess.inCheck(), checkmate: chess.isCheckmate() }) }
+          aiThinking = false; renderBoard(); renderMoves(); updateStatus(); maybePlayAiTurn()
+        }, 200)
+      }
+      function attemptCastle (side) {
+        if (chess.isGameOver() || gameOverByTime || aiThinking || isAiTurn()) return
+        const san = side === 'kingside' ? 'O-O' : 'O-O-O'; const made = chess.move(san)
+        if (!made) return (statusEl.textContent = `Castling ${side === 'kingside' ? 'kingside' : 'queenside'} is not legal right now.`)
+        lastMoveSquares = [made.from, made.to]; playMoveSound({ castle: true, check: chess.inCheck(), checkmate: chess.isCheckmate() }); clearSelection(); renderBoard(); renderMoves(); updateStatus(); maybePlayAiTurn()
+      }
+
+      function onSquareClick (e) {
+        if (chess.isGameOver() || gameOverByTime || aiThinking || isAiTurn()) return
+        const to = e.currentTarget.dataset.square; const piece = chess.get(to)
+        if (!selectedSquare) { if (piece && piece.color === chess.turn()) { selectedSquare = to; legalTargets = chess.moves({ square: to, verbose: true }) } return renderBoard() }
+        if (to === selectedSquare) { clearSelection(); return renderBoard() }
+        const isLegal = legalTargets.some(move => move.to === to)
+        if (!isLegal && piece && piece.color === chess.turn()) { selectedSquare = to; legalTargets = chess.moves({ square: to, verbose: true }); return renderBoard() }
+        if (isLegal) {
+          const selectedMove = legalTargets.find(m => m.to === to)
+          const promotion = selectedMove?.promotion ? choosePromotionPiece() : undefined
+          const made = chess.move({ from: selectedSquare, to, ...(promotion ? { promotion } : {}) })
+          lastMoveSquares = made ? [made.from, made.to] : []
+          clearSelection(); playMoveSound({ capture: Boolean(made?.captured), castle: Boolean(made?.san?.includes('O-O')), check: chess.inCheck(), checkmate: chess.isCheckmate() }); renderBoard(); renderMoves(); updateStatus(); maybePlayAiTurn(); return
+        }
+        clearSelection(); renderBoard()
+      }
+
+      function newGame () { chess.reset(); gameOverByTime = false; aiThinking = false; lastMoveSquares = []; clearSelection(); setTime(Number(timeSelect.value)); renderBoard(); renderMoves(); updateStatus(); startTimer(); maybePlayAiTurn() }
+      document.getElementById('new-game').addEventListener('click', newGame)
+      document.getElementById('castle-kingside').addEventListener('click', () => attemptCastle('kingside'))
+      document.getElementById('castle-queenside').addEventListener('click', () => attemptCastle('queenside'))
+      document.getElementById('undo').addEventListener('click', () => { if (gameOverByTime || aiThinking) return; if (chess.history().length) { chess.undo(); if (isAiEnabled() && chess.history().length) chess.undo(); lastMoveSquares = []; clearSelection(); renderBoard(); renderMoves(); updateStatus(); maybePlayAiTurn() } })
+      document.getElementById('flip').addEventListener('click', () => { flipped = !flipped; renderBoard() })
+      document.getElementById('copy-pgn').addEventListener('click', async () => { try { await navigator.clipboard.writeText(chess.pgn() || '(no moves)'); statusEl.textContent = 'PGN copied to clipboard.' } catch { statusEl.textContent = 'Unable to copy PGN in this browser context.' } })
+      document.getElementById('load-fen').addEventListener('click', () => {
+        const fen = fenInput.value.trim(); if (!fen) return
+        const loaded = chess.load(fen); if (!loaded) return (statusEl.textContent = 'Invalid FEN. Please try again.')
+        gameOverByTime = false; aiThinking = false; lastMoveSquares = []; clearSelection(); renderBoard(); renderMoves(); updateStatus(); startTimer(); maybePlayAiTurn()
+      })
+      timeSelect.addEventListener('change', () => { if (!chess.history().length) setTime(Number(timeSelect.value)) })
+      aiEnabledSelect.addEventListener('change', () => { clearSelection(); renderBoard(); updateStatus(); maybePlayAiTurn() })
+      aiColorSelect.addEventListener('change', () => { clearSelection(); renderBoard(); updateStatus(); maybePlayAiTurn() })
+      aiDepthSelect.addEventListener('change', maybePlayAiTurn)
+      newGame()
+    </script>
+  </body>
+</html>
